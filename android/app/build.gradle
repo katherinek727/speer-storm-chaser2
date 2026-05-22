@@ -117,24 +117,13 @@ dependencies {
         implementation jscFlavor
     }
     
-    // Add support for vector icons
-    implementation project(':react-native-vector-icons')
-    
-    // Add support for safe area context
-    implementation project(':react-native-safe-area-context')
-    
-    // Add support for permissions
-    implementation project(':react-native-permissions')
-    
-    // Add support for async storage
-    implementation project(':@react-native-async-storage_async-storage')
-    
-    // Add support for maps
+    // Manually include all React Native libraries
     implementation project(':react-native-maps')
-    
-    // Add support for camera
+    implementation project(':react-native-vector-icons')
+    implementation project(':react-native-safe-area-context')
+    implementation project(':react-native-permissions')
+    implementation project(':@react-native-async-storage_async-storage')
     implementation project(':react-native-camera')
-    
-    // Add support for splash screen
     implementation project(':react-native-splash-screen')
+    implementation project(':react-native-gesture-handler')
 }

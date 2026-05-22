@@ -22,15 +22,8 @@ if "%1"=="--reinstall" (
     call npm ci
 )
 
-echo 4. Linking native modules...
-call npx react-native link react-native-vector-icons
-call npx react-native link react-native-safe-area-context
-call npx react-native link react-native-permissions
-call npx react-native link @react-native-async-storage/async-storage
-call npx react-native link react-native-maps
-call npx react-native link react-native-camera
-call npx react-native link react-native-splash-screen
-call npx react-native link react-native-gesture-handler
+echo 4. Running React Native doctor...
+call npx @react-native-community/cli doctor
 
 echo 5. Starting Metro bundler...
 start /B npx react-native start --reset-cache
@@ -47,6 +40,9 @@ echo.
 echo === Build Complete ===
 echo If build succeeded, you can now run:
 echo   npx react-native run-android
+echo.
+echo If build failed, try:
+echo   cd android && gradlew clean && cd .. && npx react-native run-android
 echo.
 echo If you need to set up Google Maps API key:
 echo 1. Get API key from: https://console.cloud.google.com/google/maps-apis
