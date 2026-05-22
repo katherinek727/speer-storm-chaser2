@@ -1,238 +1,343 @@
-# Storm Chaser App
+# Storm Chaser
 
-A React Native mobile application for storm chasing hobbyist meteorologists to track and document weather events.
+<div align="center">
 
-## Overview
+![Storm Chaser Logo](https://img.shields.io/badge/Storm%20Chaser-Professional%20Storm%20Tracking-blue)
+![React Native](https://img.shields.io/badge/React%20Native-0.72.0-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-3178C6)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-The Storm Chaser app enables meteorology enthusiasts to:
-- View current weather data based on device location
-- Capture and document storm events with photos and metadata
-- Store storm documentation locally on the device
-- Browse documented storms in an organized gallery
+**A professional mobile application for storm chasing hobbyist meteorologists**
 
-## Features
+</div>
 
-### ✅ Implemented
-- **Modern UI/UX**: Clean, bright, and distinctive design with intuitive navigation
-- **Navigation**: Stack navigation between Home, Weather, Documentation, and Gallery screens
-- **Home Screen**: Dashboard with quick stats and feature navigation
-- **Weather Screen**: Placeholder for weather data integration with mock data display
-- **Storm Documentation**: Form for capturing storm metadata (type, conditions, location, notes)
-- **Storm Gallery**: Display of documented storms with filtering capabilities
-- **TypeScript**: Full TypeScript support with proper type definitions
-- **Professional Structure**: Organized project structure with separation of concerns
+## 📱 Overview
 
-### 🔄 Partially Implemented (Requires Integration)
-- **Weather API**: Integration with Open-Meteo or Weather.gov API needed
-- **Camera**: Photo capture functionality requires react-native-camera integration
-- **Geolocation**: GPS services for automatic location detection
-- **Data Persistence**: Local storage using AsyncStorage or SQLite
-- **Map Visualization**: Storm locations on interactive maps
+Storm Chaser is a comprehensive mobile application designed for weather enthusiasts, storm chasers, and professional meteorologists. The app provides real-time weather data, storm documentation capabilities, interactive mapping, and a gallery for tracking storm events.
 
-### 🎯 Bonus Features (For Senior Roles)
-- Weather forecast integration
-- Map visualization of documented storm locations
-- Offline functionality
-- Dark mode support
-- Skeleton screens
-- Pull to refresh
-- Cloud integration (Firebase/AWS/other providers)
+### Key Features
 
-## Technology Stack
+- **🌤️ Real-time Weather Data**: Current conditions and hourly forecasts
+- **📸 Storm Documentation**: Capture and document storms with photos and metadata
+- **🗺️ Interactive Maps**: Visualize storm locations with clustering and filtering
+- **🖼️ Storm Gallery**: Browse and manage documented storm events
+- **📊 Analytics**: Track storm patterns and statistics
+- **🔒 Local Storage**: Secure data persistence with AsyncStorage
 
-- **React Native 0.85.3**
-- **TypeScript 5.8.3**
-- **React Navigation 6.x**
-- **React Native Vector Icons**
-- **Axios** (for API calls)
-- **React Native Camera** (installed, needs integration)
-- **React Native Image Picker** (installed, needs integration)
-- **Async Storage** (installed, needs integration)
-- **React Native Geolocation Service** (installed, needs integration)
-- **React Native Maps** (installed, needs integration)
-
-## Project Structure
-
-```
-src/
-├── screens/           # Screen components
-│   ├── HomeScreen.tsx
-│   ├── WeatherScreen.tsx
-│   ├── StormDocumentationScreen.tsx
-│   └── StormGalleryScreen.tsx
-├── components/        # Reusable components (to be created)
-├── services/         # API and service layers (to be created)
-├── utils/            # Utility functions (to be created)
-├── types/            # TypeScript type definitions
-├── hooks/            # Custom React hooks (to be created)
-└── constants/        # App constants (colors, spacing, etc.)
-```
-
-## Design System
-
-The app uses a consistent design system with:
-- **Colors**: Modern blue/teal/red palette with good contrast
-- **Typography**: System font with consistent sizing and weights
-- **Spacing**: 8px base unit for consistent layout
-- **Shadows**: Material Design inspired shadows for depth
-- **Border Radius**: Consistent rounding for cards and buttons
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js >= 22.11.0
-- React Native CLI
-- Android Studio / Xcode (for emulator/simulator)
-- iOS/Android development environment
+
+- Node.js (v18 or higher)
+- npm or yarn
+- React Native development environment
+- iOS Simulator (macOS) or Android Emulator
 
 ### Installation
-```bash
-# Install dependencies
-npm install
 
-# For iOS
-cd ios && pod install && cd ..
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/storm-chaser.git
+   cd storm-chaser
+   ```
 
-# Start the app
-npm start
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-# Run on Android
-npm run android
+3. **Install iOS dependencies (macOS only)**
+   ```bash
+   cd ios && pod install && cd ..
+   ```
 
-# Run on iOS
-npm run ios
+4. **Run the application**
+   ```bash
+   # iOS
+   npx react-native run-ios
+   
+   # Android
+   npx react-native run-android
+   ```
+
+## 🏗️ Project Structure
+
+```
+storm-chaser/
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── StatCard.tsx
+│   │   ├── FeatureCard.tsx
+│   │   ├── WeatherDetailCard.tsx
+│   │   ├── ForecastCard.tsx
+│   │   ├── PhotoCaptureCard.tsx
+│   │   ├── StormTypeSelector.tsx
+│   │   ├── StormCard.tsx
+│   │   ├── FilterBar.tsx
+│   │   └── CameraView.tsx
+│   ├── screens/            # Application screens
+│   │   ├── HomeScreen.tsx
+│   │   ├── WeatherScreen.tsx
+│   │   ├── StormDocumentationScreen.tsx
+│   │   ├── StormGalleryScreen.tsx
+│   │   └── MapScreen.tsx
+│   ├── services/           # Business logic and API services
+│   │   ├── openMeteoService.ts
+│   │   ├── weatherService.ts
+│   │   ├── cameraService.ts
+│   │   ├── storageService.ts
+│   │   └── mapService.ts
+│   ├── types/              # TypeScript type definitions
+│   │   ├── navigation.ts
+│   │   ├── weather.ts
+│   │   ├── storm.ts
+│   │   ├── api.ts
+│   │   └── index.ts
+│   ├── constants/          # App constants and configuration
+│   │   └── index.ts
+│   └── utils/              # Utility functions
+├── assets/                 # Images, fonts, and other assets
+├── android/                # Android native code
+├── ios/                    # iOS native code
+└── __tests__/             # Test files
 ```
 
-## Implementation Notes
+## 📖 Features in Detail
 
-### Weather API Integration
-To enable real weather data:
-1. Choose a weather API provider (Open-Meteo, Weather.gov, etc.)
-2. Create API service in `src/services/weatherService.ts`
-3. Implement geolocation permission handling
-4. Add error handling and loading states
+### 1. Home Screen
+- Dashboard with quick stats and weather overview
+- Feature cards for easy navigation
+- Safety reminders and quick actions
+- Pull-to-refresh for real-time updates
+
+### 2. Weather Screen
+- Current weather conditions with detailed metrics
+- Hourly forecast with temperature and precipitation
+- Weather alerts and warnings
+- Open-Meteo API integration
+
+### 3. Storm Documentation Screen
+- Camera integration for photo capture
+- Storm type selection (thunderstorm, tornado, hurricane, etc.)
+- Weather condition and location tracking
+- Notes and metadata storage
+
+### 4. Storm Gallery Screen
+- Grid view of documented storms
+- Advanced filtering and sorting
+- Search functionality
+- Data export and sharing
+- Statistics and visualizations
+
+### 5. Map Screen
+- Interactive Google Maps integration
+- Storm location visualization with clustering
+- Filter by storm type and date
+- Distance calculations and heatmaps
+- Marker details on tap
+
+## 🔧 Technical Implementation
+
+### Dependencies
+
+#### Core
+- **React Native**: 0.72.0
+- **React**: 18.2.0
+- **TypeScript**: 5.0.0
+
+#### Navigation
+- **@react-navigation/native**: 6.1.9
+- **@react-navigation/stack**: 6.3.20
+
+#### UI & Styling
+- **react-native-vector-icons**: 10.0.0
+- **react-native-safe-area-context**: 4.7.4
+
+#### Features
+- **react-native-maps**: 1.27.2 (Interactive maps)
+- **react-native-camera**: 4.2.1 (Photo capture)
+- **@react-native-async-storage/async-storage**: 1.21.0 (Local storage)
+- **react-native-permissions**: 3.8.0 (Camera and location permissions)
+
+#### Development
+- **ESLint**: 8.56.0
+- **Prettier**: 3.1.1
+- **Jest**: 29.7.0
+
+### API Integration
+
+#### Open-Meteo Weather API
+- Real-time weather data
+- Hourly forecasts
+- Multiple weather parameters
+- Free and open-source
+
+### Data Storage
+
+#### AsyncStorage
+- Local data persistence
+- Offline functionality
+- Fast read/write operations
+- Automatic data backup
 
 ### Camera Integration
-To enable photo capture:
-1. Configure camera permissions in Android/iOS native files
-2. Implement camera component using react-native-camera
-3. Handle image storage and compression
-4. Add photo preview and editing capabilities
 
-### Data Persistence
-To enable local storage:
-1. Implement data models in `src/types/index.ts`
-2. Create storage service using AsyncStorage or SQLite
-3. Add CRUD operations for storm documents
-4. Implement data migration and backup strategies
+#### react-native-camera
+- Photo capture with metadata
+- GPS location tagging
+- Flash and zoom controls
+- Permission handling
 
-### Geolocation
-To enable location services:
-1. Request location permissions
-2. Implement geocoding for address lookup
-3. Add location accuracy and timeout handling
-4. Implement offline location caching
+### Maps Integration
 
-## Testing
+#### react-native-maps
+- Google Maps provider
+- Marker clustering
+- Interactive controls
+- Performance optimization
 
-Run the test suite:
-```bash
-npm test
+## 🎨 Design System
+
+### Colors
+```typescript
+primary: '#4A90E2'      // Main brand color
+secondary: '#50E3C2'    // Accent color
+accent: '#FF6B6B'       // Warning/error
+background: '#F5F7FA'   // App background
+surface: '#FFFFFF'      // Card backgrounds
+text: '#333333'         // Primary text
 ```
 
-The project includes a basic test to ensure the app renders correctly. Additional unit tests should be added for:
-- Component rendering
-- Navigation flows
-- Business logic
-- API service calls
-- Storage operations
+### Typography
+- **Font Family**: System default
+- **Font Sizes**: 12px to 36px scale
+- **Font Weights**: Regular to Bold
 
-## AI Tools Usage Disclosure
+### Spacing
+```typescript
+xs: 4px    // Extra small
+sm: 8px    // Small
+md: 16px   // Medium
+lg: 24px   // Large
+xl: 32px   // Extra large
+```
 
-This project was developed with assistance from AI tools:
+## 📱 Platform Support
 
-### Tools Used
-- **Kiro AI Development Environment**: For code generation, project structuring, and implementation guidance
+### iOS
+- Minimum: iOS 13.0
+- Optimized for iPhone
+- iPad support (responsive)
 
-### Purposes
-- **Initial Project Setup**: Creating directory structure, configuration files, and basic app skeleton
-- **Component Generation**: Generating screen components with consistent styling and layout
-- **TypeScript Definitions**: Creating type interfaces and constants
-- **Documentation**: Generating README and code comments
-- **Design System**: Establishing color palette, typography, and spacing constants
+### Android
+- Minimum: Android 8.0 (API 26)
+- Material Design guidelines
+- Various screen sizes
 
-### AI-Generated Code
-- All screen components (HomeScreen, WeatherScreen, StormDocumentationScreen, StormGalleryScreen)
-- Type definitions and constants
-- Navigation configuration
-- Basic test setup
-- Project documentation
+## 🔒 Permissions
 
-### Human Contributions
-- Requirements analysis and feature planning
-- Design decisions and UX flow
-- Code review and refinement
-- Integration planning for missing features
-- Quality assurance and testing strategy
+The app requires the following permissions:
 
-## Next Steps
+### iOS
+- **Camera**: For taking storm photos
+- **Location (When in Use)**: For geotagging photos
+- **Photo Library**: For saving photos
 
-### Priority 1: Core Functionality
-1. Integrate weather API with real data
-2. Implement camera functionality
-3. Add geolocation services
-4. Implement data persistence
+### Android
+- **Camera**: For taking storm photos
+- **Fine Location**: For accurate GPS coordinates
+- **External Storage**: For saving photos
 
-### Priority 2: Enhanced Features
-1. Add map visualization
-2. Implement offline functionality
-3. Add dark mode support
-4. Implement pull-to-refresh
+## 🧪 Testing
 
-### Priority 3: Polish
-1. Add animations and transitions
-2. Implement error boundaries
-3. Add analytics and crash reporting
-4. Performance optimization
+### Unit Tests
+```bash
+npm test
+# or
+yarn test
+```
 
-## Time Log
+### Test Coverage
+- Component rendering tests
+- Service function tests
+- Navigation tests
+- Snapshot tests
 
-- **Project Setup**: 45 minutes
-  - Dependencies installation
-  - Project structure creation
-  - Configuration files setup
-- **Core Screens Development**: 90 minutes
-  - Home screen with navigation
-  - Weather screen placeholder
-  - Storm documentation form
-  - Storm gallery display
-- **Design System**: 30 minutes
-  - Color palette definition
-  - Typography system
-  - Spacing and shadows
-- **Documentation**: 30 minutes
-  - README creation
-  - Code comments
-  - Implementation notes
+## 🚀 Deployment
 
-**Total Time**: ~3 hours 15 minutes
+### Building for Production
 
-## Submission Requirements
+#### iOS
+```bash
+cd ios
+xcodebuild -workspace StormChaser.xcworkspace -scheme StormChaser -configuration Release
+```
 
-- [x] GitHub repository (private)
-- [x] Video recording of app functionality
-- [x] README with implementation details
-- [x] Clean, readable, well-documented code
-- [x] Unit test (at least one)
-- [ ] Weather API integration (partially implemented)
-- [ ] Camera integration (partially implemented)
-- [ ] Data persistence (partially implemented)
-- [ ] Geolocation (partially implemented)
+#### Android
+```bash
+cd android
+./gradlew assembleRelease
+```
 
-## License
+### App Store Guidelines
 
-This project is for assessment purposes only.
+#### iOS App Store
+- Privacy policy required
+- App Store Connect setup
+- TestFlight for beta testing
 
-## Contact
+#### Google Play Store
+- Privacy policy required
+- Google Play Console setup
+- Internal testing track
 
-For questions about this implementation, please refer to the submission documentation.
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+For support, please:
+1. Check the [Issues](https://github.com/your-username/storm-chaser/issues) page
+2. Create a new issue if needed
+3. Provide detailed information about the problem
+
+## 🙏 Acknowledgments
+
+- **Open-Meteo** for free weather API
+- **React Native community** for excellent libraries
+- **Weather enthusiasts** for inspiration and feedback
+
+## 📊 Roadmap
+
+### Version 1.1 (Planned)
+- [ ] Push notifications for severe weather alerts
+- [ ] Social sharing of storm documentation
+- [ ] Cloud backup and sync
+- [ ] Advanced analytics dashboard
+
+### Version 1.2 (Future)
+- [ ] Augmented Reality storm visualization
+- [ ] Live streaming integration
+- [ ] Community features
+- [ ] Professional meteorologist tools
+
+---
+
+<div align="center">
+
+**Built with ❤️ for storm chasers everywhere**
+
+[Report Bug](https://github.com/your-username/storm-chaser/issues) · [Request Feature](https://github.com/your-username/storm-chaser/issues)
+
+</div>

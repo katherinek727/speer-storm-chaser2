@@ -1,0 +1,35 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#4A90E2"/>
+  <g transform="translate(512, 512)">
+    <circle r="200" fill="white" fill-opacity="0.9"/>
+    <circle r="120" fill="#50E3C2"/>
+    
+    <!-- Storm elements -->
+    <g stroke="white" stroke-width="20" stroke-linecap="round">
+      <line x1="-200" y1="-200" x2="-300" y2="-300"/>
+      <line x1="200" y1="-200" x2="300" y2="-300"/>
+      <line x1="-200" y1="200" x2="-300" y2="300"/>
+      <line x1="200" y1="200" x2="300" y2="300"/>
+      <line x1="-300" y1="0" x2="-400" y2="0"/>
+      <line x1="300" y1="0" x2="400" y2="0"/>
+      <line x1="0" y1="-300" x2="0" y2="-400"/>
+      <line x1="0" y1="300" x2="0" y2="400"/>
+    </g>
+    
+    <!-- Lightning bolts -->
+    <g stroke="#FF6B6B" stroke-width="15" stroke-linecap="round">
+      <line x1="-120" y1="-120" x2="-180" y2="-180"/>
+      <line x1="120" y1="-120" x2="180" y2="-180"/>
+      <line x1="-120" y1="120" x2="-180" y2="180"/>
+      <line x1="120" y1="120" x2="180" y2="180"/>
+    </g>
+    
+    <!-- App title -->
+    <text y="320" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold">
+      Storm Chaser
+    </text>
+    <text y="380" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" opacity="0.8">
+      Professional Storm Tracking
+    </text>
+  </g>
+</svg>

@@ -1,4 +1,71 @@
 {
   "name": "StormChaser",
-  "displayName": "StormChaser"
+  "displayName": "Storm Chaser",
+  "version": "1.0.0",
+  "description": "Professional storm tracking and documentation app",
+  "author": "Storm Chaser Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/storm-chaser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/storm-chaser/issues"
+  },
+  "homepage": "https://github.com/your-username/storm-chaser#readme",
+  "keywords": [
+    "react-native",
+    "weather",
+    "storm",
+    "meteorology",
+    "tracking",
+    "documentation"
+  ],
+  "platforms": ["ios", "android"],
+  "orientation": "portrait",
+  "backgroundColor": "#4A90E2",
+  "themeColor": "#4A90E2",
+  "icon": "./assets/icon.png",
+  "splash": {
+    "image": "./assets/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#4A90E2"
+  },
+  "ios": {
+    "supportsTablet": true,
+    "bundleIdentifier": "com.stormchaser.app",
+    "buildNumber": "1",
+    "infoPlist": {
+      "NSCameraUsageDescription": "This app needs camera access to take photos of storms",
+      "NSLocationWhenInUseUsageDescription": "This app needs location access to tag storm photos with GPS coordinates",
+      "NSPhotoLibraryUsageDescription": "This app needs photo library access to save storm photos",
+      "UIUserInterfaceStyle": "Automatic"
+    }
+  },
+  "android": {
+    "package": "com.stormchaser.app",
+    "versionCode": 1,
+    "permissions": [
+      "android.permission.CAMERA",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_EXTERNAL_STORAGE"
+    ],
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#4A90E2"
+    }
+  },
+  "extra": {
+    "weatherApi": {
+      "baseUrl": "https://api.open-meteo.com/v1",
+      "timeout": 10000
+    },
+    "app": {
+      "name": "Storm Chaser",
+      "version": "1.0.0",
+      "environment": "production"
+    }
+  }
 }

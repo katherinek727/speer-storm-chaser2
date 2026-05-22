@@ -4,11 +4,12 @@
  * @format
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import SplashScreen from 'react-native-splash-screen';
 import { COLORS, TYPOGRAPHY } from './src/constants';
 
 // Import screens
@@ -23,8 +24,33 @@ import { RootStackParamList } from './src/types/navigation';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+// Custom splash screen component
+const CustomSplashScreen = () => {
+  return (
+    <View style={styles.splashContainer}>
+      <View style={styles.splashContent}>
+        <View style={styles.splashIcon}>
+          <View style={styles.splashIconOuter} />
+          <View style={styles.splashIconInner} />
+        </View>
+        <Text style={styles.splashTitle}>Storm Chaser</Text>
+        <Text style={styles.splashSubtitle}>Professional Storm Tracking</Text>
+      </View>
+    </View>
+  );
+};
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+
+  useEffect(() => {
+    // Hide splash screen after app is loaded
+    const timer = setTimeout(() => {
+      SplashScreen.hide();
+    }, 2000); // Show splash for 2 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const screenOptions = {
     headerStyle: {
@@ -83,5 +109,51 @@ function App(): React.JSX.Element {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  splashContent: {
+    alignItems: 'center',
+  },
+  splashIcon: {
+    position: 'relative',
+    width: 200,
+    height: 200,
+    marginBottom: 40,
+  },
+  splashIconOuter: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'white',
+    opacity: 0.9,
+  },
+  splashIconInner: {
+    position: 'absolute',
+    top: 40,
+    left: 40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.secondary,
+  },
+  splashTitle: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 8,
+  },
+  splashSubtitle: {
+    fontSize: 18,
+    color: 'white',
+    opacity: 0.8,
+  },
+});
 
 export default App;

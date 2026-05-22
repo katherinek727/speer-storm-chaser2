@@ -1,13 +1,24 @@
 {
-  "name": "StormChaser",
-  "version": "0.0.1",
+  "name": "storm-chaser",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "build:android": "cd android && ./gradlew assembleRelease",
+    "build:ios": "cd ios && xcodebuild -workspace StormChaser.xcworkspace -scheme StormChaser -configuration Release",
+    "clean": "rm -rf node_modules && npm install",
+    "clean:android": "cd android && ./gradlew clean",
+    "clean:ios": "cd ios && rm -rf Pods && pod install",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "start:dev": "react-native start --reset-cache",
+    "bundle:android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
+    "bundle:ios": "react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --assets-dest ios"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.0",
@@ -25,6 +36,7 @@
     "react-native-permissions": "^5.5.1",
     "react-native-safe-area-context": "^5.8.0",
     "react-native-screens": "^4.25.2",
+    "react-native-splash-screen": "^3.3.0",
     "react-native-vector-icons": "^10.3.0"
   },
   "devDependencies": {

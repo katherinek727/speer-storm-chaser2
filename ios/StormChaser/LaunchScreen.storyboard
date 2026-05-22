@@ -16,25 +16,91 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="StormChaser" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
-                                <rect key="frame" x="0.0" y="202" width="375" height="43"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
+                            <!-- Background View -->
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bgv-1a-2x3">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" red="0.2901960784" green="0.56470588240000001" blue="0.8862745098" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            
+                            <!-- App Icon Container -->
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iconContainer">
+                                <rect key="frame" x="87.5" y="183.5" width="200" height="200"/>
+                                <subviews>
+                                    <!-- Outer Circle -->
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="outerCircle">
+                                        <rect key="frame" x="0.0" y="0.0" width="200" height="200"/>
+                                        <color key="backgroundColor" white="1" alpha="0.90000000000000002" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="200" id="7dG-6f-8aK"/>
+                                            <constraint firstAttribute="height" constant="200" id="bcd-5c-7hN"/>
+                                        </constraints>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                <integer key="value" value="100"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                    </view>
+                                    
+                                    <!-- Inner Circle -->
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="innerCircle">
+                                        <rect key="frame" x="40" y="40" width="120" height="120"/>
+                                        <color key="backgroundColor" red="0.3137254902" green="0.8901960784" blue="0.7607843137" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="120" id="K4f-9f-abc"/>
+                                            <constraint firstAttribute="height" constant="120" id="fgh-6d-9jk"/>
+                                        </constraints>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                <integer key="value" value="60"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                    </view>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="innerCircle" firstAttribute="centerX" secondItem="iconContainer" secondAttribute="centerX" id="Lmn-2b-3Cd"/>
+                                    <constraint firstItem="innerCircle" firstAttribute="centerY" secondItem="iconContainer" secondAttribute="centerY" id="Mno-3c-4De"/>
+                                    <constraint firstAttribute="width" constant="200" id="Pqr-4d-5Ef"/>
+                                    <constraint firstAttribute="height" constant="200" id="Qrs-5e-6Fg"/>
+                                </constraints>
+                            </view>
+                            
+                            <!-- App Title -->
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Storm Chaser" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="appTitle">
+                                <rect key="frame" x="0.0" y="403.5" width="375" height="43"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="36"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Powered by React Native" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="9" translatesAutoresizingMaskIntoConstraints="NO" id="MN2-I3-ftu">
-                                <rect key="frame" x="0.0" y="626" width="375" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            
+                            <!-- App Subtitle -->
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Professional Storm Tracking" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="9" translatesAutoresizingMaskIntoConstraints="NO" id="appSubtitle">
+                                <rect key="frame" x="0.0" y="454.5" width="375" height="21"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="18"/>
+                                <color key="textColor" white="1" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="MN2-I3-ftu" secondAttribute="bottom" constant="20" id="OZV-Vh-mqD"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="GJd-Yh-RWb" secondAttribute="centerX" id="Q3B-4B-g5h"/>
-                            <constraint firstItem="MN2-I3-ftu" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="akx-eg-2ui"/>
-                            <constraint firstItem="MN2-I3-ftu" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="i1E-0Y-4RG"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="bottom" multiplier="1/3" constant="1" id="moa-c2-u7t"/>
-                            <constraint firstItem="GJd-Yh-RWb" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" symbolic="YES" id="x7j-FC-K8j"/>
+                            <!-- Background View Constraints -->
+                            <constraint firstItem="bgv-1a-2x3" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="Bg1-2b-3cD"/>
+                            <constraint firstItem="bgv-1a-2x3" firstAttribute="trailing" secondItem="Bcu-3y-fUS" secondAttribute="trailing" id="Cd2-3c-4eE"/>
+                            <constraint firstItem="bgv-1a-2x3" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="De3-4d-5fF"/>
+                            <constraint firstItem="bgv-1a-2x3" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="Ef4-5e-6gG"/>
+                            
+                            <!-- Icon Container Constraints -->
+                            <constraint firstItem="iconContainer" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="Fg5-6f-7hH"/>
+                            <constraint firstItem="iconContainer" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" multiplier="0.7" constant="1" id="Gh6-7g-8iI"/>
+                            
+                            <!-- App Title Constraints -->
+                            <constraint firstItem="appTitle" firstAttribute="top" secondItem="iconContainer" secondAttribute="bottom" constant="20" id="Hi7-8h-9jJ"/>
+                            <constraint firstItem="appTitle" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="Ij8-9i-0kK"/>
+                            <constraint firstItem="appTitle" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="Jk9-0j-1lL"/>
+                            
+                            <!-- App Subtitle Constraints -->
+                            <constraint firstItem="appSubtitle" firstAttribute="top" secondItem="appTitle" secondAttribute="bottom" constant="8" id="Kl0-1k-2mM"/>
+                            <constraint firstItem="appSubtitle" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="Lm1-2l-3nN"/>
+                            <constraint firstItem="appSubtitle" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="Mn2-3m-4oO"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                     </view>
