@@ -24,7 +24,7 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.stormchaser"
     defaultConfig {
@@ -61,12 +61,12 @@ android {
 
 dependencies {
     // React Native dependencies
-    implementation("com.facebook.react:react-android:0.84.0")
+    implementation("com.facebook.react:react-android:0.72.10")
     
     // Hermes or JSC
     def isHermesEnabled = hermesEnabled.toBoolean()
     if (isHermesEnabled) {
-        implementation("com.facebook.react:hermes-android:0.84.0")
+        implementation("com.facebook.react:hermes-android:0.72.10")
     } else {
         implementation jscFlavor
     }
@@ -86,7 +86,7 @@ configurations.all {
     resolutionStrategy {
         eachDependency { details ->
             if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
-                details.useTarget 'com.facebook.react:react-android:0.84.0'
+                details.useTarget 'com.facebook.react:react-android:0.72.10'
             }
         }
     }
