@@ -10,8 +10,10 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Image,
   FlatList,
+  RefreshControl,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../src/types/navigation';
@@ -24,6 +26,11 @@ import {
   SHADOWS,
   STORM_TYPES,
 } from '../constants';
+import StormCard from '../components/StormCard';
+import FilterBar from '../components/FilterBar';
+import { StormDocument, StormType } from '../types';
+import { getStormDocuments, deleteStormDocument, clearAllStormDocuments } from '../services/storageService';
+import { formatDate } from '../utils/helpers';
 
 type StormGalleryScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -34,158 +41,319 @@ interface Props {
   navigation: StormGalleryScreenNavigationProp;
 }
 
-interface StormItem {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  stormType: string;
-  description: string;
-  imageColor: string;
-}
-
 const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
-  const [storms, setStorms] = React.useState<StormItem[]>([
+  const [storms, setStorms] = React.useState<StormDocument[]>([]);
+  const [filteredStorms, setFilteredStorms] = React.useState<StormDocument[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [showFilters, setShowFilters] = React.useState(false);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [selectedType, setSelectedType] = React.useState<StormType | 'all'>('all');
+  const [sortBy, setSortBy] = React.useState<'date' | 'type' | 'location'>('date');
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
+
+  // Mock data for demonstration
+  const mockStorms: StormDocument[] = [
     {
       id: '1',
-      title: 'Thunderstorm Over Mountains',
-      date: 'May 15, 2024 • 14:30',
-      location: 'Rocky Mountains, CO',
+      imageUri: 'https://via.placeholder.com/400x300/FF9800/FFFFFF?text=Thunderstorm',
+      weatherConditions: 'Heavy Rain, Lightning',
+      location: {
+        latitude: 39.7392,
+        longitude: -104.9903,
+        address: 'Denver, CO',
+        city: 'Denver',
+        state: 'Colorado',
+        country: 'USA',
+      },
+      dateTime: '2024-05-15T14:30:00Z',
+      notes: 'Intense thunderstorm with frequent lightning strikes over the Rocky Mountains. Heavy rainfall caused minor flooding in low-lying areas.',
       stormType: 'thunderstorm',
-      description: 'Intense lightning activity with heavy rainfall',
-      imageColor: '#FF9800',
+      metadata: {
+        temperature: 68,
+        windSpeed: 25,
+        precipitation: 2.5,
+        humidity: 85,
+      },
+      createdAt: '2024-05-15T14:30:00Z',
+      updatedAt: '2024-05-15T14:30:00Z',
     },
     {
       id: '2',
-      title: 'Coastal Hurricane Watch',
-      date: 'Aug 22, 2024 • 09:15',
-      location: 'Gulf Coast, FL',
+      imageUri: 'https://via.placeholder.com/400x300/9C27B0/FFFFFF?text=Hurricane',
+      weatherConditions: 'High Winds, Storm Surge',
+      location: {
+        latitude: 25.7617,
+        longitude: -80.1918,
+        address: 'Miami, FL',
+        city: 'Miami',
+        state: 'Florida',
+        country: 'USA',
+      },
+      dateTime: '2024-08-22T09:15:00Z',
+      notes: 'Category 3 hurricane approaching coastline. Evacuation orders issued for coastal areas. Storm surge expected to reach 8 feet.',
       stormType: 'hurricane',
-      description: 'Category 3 hurricane approaching coastline',
-      imageColor: '#9C27B0',
+      metadata: {
+        temperature: 82,
+        windSpeed: 115,
+        precipitation: 12.5,
+        humidity: 90,
+      },
+      createdAt: '2024-08-22T09:15:00Z',
+      updatedAt: '2024-08-22T09:15:00Z',
     },
     {
       id: '3',
-      title: 'Winter Blizzard',
-      date: 'Jan 10, 2024 • 11:45',
-      location: 'Great Lakes, MI',
+      imageUri: 'https://via.placeholder.com/400x300/2196F3/FFFFFF?text=Blizzard',
+      weatherConditions: 'Heavy Snow, Whiteout',
+      location: {
+        latitude: 42.3601,
+        longitude: -71.0589,
+        address: 'Boston, MA',
+        city: 'Boston',
+        state: 'Massachusetts',
+        country: 'USA',
+      },
+      dateTime: '2024-01-10T11:45:00Z',
+      notes: 'Severe blizzard conditions with visibility less than 100 feet. Accumulation expected to reach 18 inches. Travel advisories in effect.',
       stormType: 'blizzard',
-      description: 'Heavy snowfall with strong winds',
-      imageColor: '#2196F3',
+      metadata: {
+        temperature: 18,
+        windSpeed: 35,
+        precipitation: 18,
+        humidity: 75,
+      },
+      createdAt: '2024-01-10T11:45:00Z',
+      updatedAt: '2024-01-10T11:45:00Z',
     },
     {
       id: '4',
-      title: 'Tornado Warning',
-      date: 'Apr 5, 2024 • 16:20',
-      location: 'Tornado Alley, OK',
+      imageUri: 'https://via.placeholder.com/400x300/F44336/FFFFFF?text=Tornado',
+      weatherConditions: 'Rotating Funnel Cloud',
+      location: {
+        latitude: 35.4676,
+        longitude: -97.5164,
+        address: 'Oklahoma City, OK',
+        city: 'Oklahoma City',
+        state: 'Oklahoma',
+        country: 'USA',
+      },
+      dateTime: '2024-04-05T16:20:00Z',
+      notes: 'Tornado touchdown reported 5 miles west of city. Funnel cloud visible for 15 minutes. No injuries reported, minor property damage.',
       stormType: 'tornado',
-      description: 'Funnel cloud spotted near residential area',
-      imageColor: '#F44336',
+      metadata: {
+        temperature: 72,
+        windSpeed: 180,
+        precipitation: 0.5,
+        humidity: 65,
+      },
+      createdAt: '2024-04-05T16:20:00Z',
+      updatedAt: '2024-04-05T16:20:00Z',
     },
-  ]);
+  ];
 
-  const getStormTypeColor = (type: string): string => {
-    const stormType = STORM_TYPES.find((t) => t.value === type);
-    return stormType?.color || COLORS.textLight;
-  };
-
-  const getStormTypeIcon = (type: string): string => {
-    switch (type) {
-      case 'thunderstorm':
-        return 'lightning-bolt';
-      case 'tornado':
-        return 'weather-tornado';
-      case 'hurricane':
-        return 'weather-hurricane';
-      case 'blizzard':
-        return 'snowflake';
-      case 'flood':
-        return 'water';
-      case 'hail':
-        return 'weather-hail';
-      default:
-        return 'weather-cloudy';
+  const loadStorms = async () => {
+    try {
+      // In a real implementation, this would load from storageService
+      // const response = await getStormDocuments();
+      // if (response.success) {
+      //   setStorms(response.data);
+      // }
+      
+      // For now, use mock data
+      setStorms(mockStorms);
+      setFilteredStorms(mockStorms);
+    } catch (error) {
+      console.error('Error loading storms:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const renderStormItem = ({ item }: { item: StormItem }) => (
-    <TouchableOpacity
-      style={[styles.stormCard, SHADOWS.md]}
-      onPress={() => {
-        // Navigate to storm detail view
-      }}>
-      <View style={styles.stormCardHeader}>
-        <View
-          style={[
-            styles.stormTypeIndicator,
-            { backgroundColor: getStormTypeColor(item.stormType) },
-          ]}>
-          <Icon
-            name={getStormTypeIcon(item.stormType)}
-            size={16}
-            color="#FFFFFF"
-          />
-        </View>
-        <Text style={styles.stormTypeText}>
-          {STORM_TYPES.find((t) => t.value === item.stormType)?.label ||
-            item.stormType}
-        </Text>
-      </View>
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    loadStorms();
+  }, []);
 
-      <View style={styles.imagePlaceholder}>
-        <View
-          style={[
-            styles.imageColor,
-            { backgroundColor: item.imageColor + '40' },
-          ]}>
-          <Icon name="image" size={48} color={item.imageColor} />
-          <Text style={[styles.imageText, { color: item.imageColor }]}>
-            Storm Photo
-          </Text>
-        </View>
-      </View>
+  React.useEffect(() => {
+    loadStorms();
+  }, []);
 
-      <View style={styles.stormCardContent}>
-        <Text style={styles.stormTitle}>{item.title}</Text>
-        <View style={styles.stormMeta}>
-          <View style={styles.metaItem}>
-            <Icon name="calendar" size={14} color={COLORS.textLight} />
-            <Text style={styles.metaText}>{item.date}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Icon name="map-marker" size={14} color={COLORS.textLight} />
-            <Text style={styles.metaText}>{item.location}</Text>
-          </View>
-        </View>
-        <Text style={styles.stormDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
-      </View>
+  // Apply filters whenever filter states change
+  React.useEffect(() => {
+    let filtered = [...storms];
 
-      <View style={styles.stormCardFooter}>
-        <TouchableOpacity style={styles.viewButton}>
-          <Text style={styles.viewButtonText}>View Details</Text>
-          <Icon name="chevron-right" size={16} color={COLORS.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.shareButton}>
-          <Icon name="share-variant" size={18} color={COLORS.textLight} />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (storm) =>
+          storm.notes.toLowerCase().includes(query) ||
+          storm.weatherConditions.toLowerCase().includes(query) ||
+          (storm.location.address?.toLowerCase().includes(query) || false),
+      );
+    }
+
+    // Apply type filter
+    if (selectedType !== 'all') {
+      filtered = filtered.filter((storm) => storm.stormType === selectedType);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
+          break;
+        case 'type':
+          comparison = a.stormType.localeCompare(b.stormType);
+          break;
+        case 'location':
+          comparison = (a.location.address || '').localeCompare(b.location.address || '');
+          break;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    setFilteredStorms(filtered);
+  }, [storms, searchQuery, selectedType, sortBy, sortOrder]);
+
+  const handleDeleteStorm = (stormId: string) => {
+    Alert.alert(
+      'Delete Storm',
+      'Are you sure you want to delete this storm documentation? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // In real implementation: await deleteStormDocument(stormId);
+              setStorms(storms.filter((storm) => storm.id !== stormId));
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete storm documentation');
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleShareStorm = (storm: StormDocument) => {
+    Alert.alert(
+      'Share Storm',
+      'Sharing functionality would be implemented here. The storm data could be exported as JSON or shared as a report.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Export as JSON',
+          onPress: () => {
+            const stormJson = JSON.stringify(storm, null, 2);
+            Alert.alert('Storm Data', stormJson.substring(0, 500) + '...');
+          },
+        },
+      ],
+    );
+  };
+
+  const handleClearAll = () => {
+    Alert.alert(
+      'Clear All Storms',
+      'This will delete all storm documentation. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // In real implementation: await clearAllStormDocuments();
+              setStorms([]);
+              setFilteredStorms([]);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear storms');
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleViewStormDetails = (storm: StormDocument) => {
+    Alert.alert(
+      'Storm Details',
+      `Storm Type: ${STORM_TYPES.find(t => t.value === storm.stormType)?.label}\n` +
+      `Location: ${storm.location.address}\n` +
+      `Date: ${formatDate(storm.dateTime)}\n` +
+      `Conditions: ${storm.weatherConditions}\n\n` +
+      `${storm.notes.substring(0, 200)}...`,
+      [
+        { text: 'Close', style: 'cancel' },
+        {
+          text: 'Edit',
+          onPress: () => {
+            // Navigate to edit screen (not implemented in this demo)
+            Alert.alert('Edit', 'Edit functionality would be implemented here.');
+          },
+        },
+      ],
+    );
+  };
+
+  const getStatistics = () => {
+    const stats = {
+      total: storms.length,
+      byType: {} as Record<StormType, number>,
+      byLocation: new Set(storms.map(s => s.location.address || 'Unknown')).size,
+    };
+
+    storms.forEach((storm) => {
+      stats.byType[storm.stormType] = (stats.byType[storm.stormType] || 0) + 1;
+    });
+
+    return stats;
+  };
+
+  const stats = getStatistics();
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Loading storm gallery...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
+        {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerContent}>
             <Text style={styles.title}>Storm Gallery</Text>
             <Text style={styles.subtitle}>
-              Browse your documented storm events
+              Browse and manage your documented storms
             </Text>
           </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <Icon name="filter-variant" size={24} color={COLORS.primary} />
+          <TouchableOpacity
+            style={styles.newStormButton}
+            onPress={() => navigation.navigate('StormDocumentation' as any)}>
+            <Icon name="plus" size={20} color={COLORS.surface} />
+            <Text style={styles.newStormButtonText}>New Storm</Text>
           </TouchableOpacity>
         </View>
 
@@ -199,65 +367,164 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
             />
             <Text style={styles.emptyTitle}>No Storms Documented Yet</Text>
             <Text style={styles.emptyDescription}>
-              Start documenting storms using the "Document Storm" feature to see
-              them here.
+              Start documenting storms to build your storm chasing portfolio.
+              Your documented storms will appear here with photos and metadata.
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
-              onPress={() => navigation.navigate('StormDocumentation')}>
-              <Text style={styles.emptyButtonText}>Document First Storm</Text>
+              onPress={() => navigation.navigate('StormDocumentation' as any)}>
+              <Text style={styles.emptyButtonText}>Document Your First Storm</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <>
-            <View style={styles.statsBar}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{storms.length}</Text>
-                <Text style={styles.statLabel}>Total Storms</Text>
+            {/* Statistics */}
+            <View style={[styles.statsCard, SHADOWS.md]}>
+              <Text style={styles.statsTitle}>Storm Statistics</Text>
+              <View style={styles.statsGrid}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{stats.total}</Text>
+                  <Text style={styles.statLabel}>Total Storms</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{stats.byLocation}</Text>
+                  <Text style={styles.statLabel}>Locations</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>
+                    {Object.keys(stats.byType).length}
+                  </Text>
+                  <Text style={styles.statLabel}>Storm Types</Text>
+                </View>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
-                  {new Set(storms.map((s) => s.stormType)).size}
-                </Text>
-                <Text style={styles.statLabel}>Storm Types</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
-                  {new Set(storms.map((s) => s.location)).size}
-                </Text>
-                <Text style={styles.statLabel}>Locations</Text>
-              </View>
+              
+              {/* Storm type distribution */}
+              {Object.keys(stats.byType).length > 0 && (
+                <View style={styles.typeDistribution}>
+                  <Text style={styles.distributionTitle}>By Storm Type:</Text>
+                  <View style={styles.distributionBars}>
+                    {Object.entries(stats.byType).map(([type, count]) => {
+                      const typeConfig = STORM_TYPES.find(t => t.value === type);
+                      const percentage = (count / stats.total) * 100;
+                      return (
+                        <View key={type} style={styles.distributionItem}>
+                          <View style={styles.distributionBarContainer}>
+                            <View
+                              style={[
+                                styles.distributionBar,
+                                {
+                                  width: `${percentage}%`,
+                                  backgroundColor: typeConfig?.color || COLORS.textLight,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <View style={styles.distributionLabel}>
+                            <View
+                              style={[
+                                styles.distributionColor,
+                                { backgroundColor: typeConfig?.color || COLORS.textLight },
+                              ]}
+                            />
+                            <Text style={styles.distributionText}>
+                              {typeConfig?.label || type}: {count}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
             </View>
 
-            <FlatList
-              data={storms}
-              renderItem={renderStormItem}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              contentContainerStyle={styles.stormList}
+            {/* Filter Bar */}
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedType={selectedType}
+              onTypeChange={setSelectedType}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              sortOrder={sortOrder}
+              onSortOrderToggle={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              resultCount={filteredStorms.length}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters(!showFilters)}
             />
 
-            <View style={styles.importSection}>
-              <Text style={styles.importTitle}>Storage Integration</Text>
-              <Text style={styles.importDescription}>
-                Real storm data will be stored locally using AsyncStorage or
-                SQLite. Implement data persistence to save and retrieve your
-                documented storms.
+            {/* Storm List */}
+            {filteredStorms.length === 0 ? (
+              <View style={styles.noResults}>
+                <Icon name="magnify-close" size={48} color={COLORS.textLighter} />
+                <Text style={styles.noResultsTitle}>No Storms Found</Text>
+                <Text style={styles.noResultsText}>
+                  Try adjusting your filters or search terms
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={filteredStorms}
+                renderItem={({ item }) => (
+                  <StormCard
+                    storm={item}
+                    onPress={() => handleViewStormDetails(item)}
+                    onShare={() => handleShareStorm(item)}
+                    onDelete={() => handleDeleteStorm(item.id)}
+                  />
+                )}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                contentContainerStyle={styles.stormList}
+              />
+            )}
+
+            {/* Actions */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.exportButton]}
+                onPress={() => {
+                  Alert.alert(
+                    'Export Data',
+                    'Export functionality would save all storm data to a JSON file.',
+                  );
+                }}>
+                <Icon name="export" size={20} color={COLORS.primary} />
+                <Text style={styles.exportButtonText}>Export All Data</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.clearButton]}
+                onPress={handleClearAll}>
+                <Icon name="delete-sweep" size={20} color={COLORS.error} />
+                <Text style={styles.clearButtonText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Storage Integration Info */}
+            <View style={styles.storageInfo}>
+              <Text style={styles.storageTitle}>Storage Integration</Text>
+              <Text style={styles.storageText}>
+                This gallery demonstrates how storm data would be stored and
+                retrieved using AsyncStorage. In a real implementation:
               </Text>
-              <View style={styles.importFeatures}>
-                <View style={styles.featureItem}>
-                  <Icon name="database" size={20} color={COLORS.success} />
-                  <Text style={styles.featureText}>Local Storage</Text>
+              <View style={styles.storageFeatures}>
+                <View style={styles.storageFeature}>
+                  <Icon name="database" size={16} color={COLORS.success} />
+                  <Text style={styles.storageFeatureText}>
+                    Data persistence across app restarts
+                  </Text>
                 </View>
-                <View style={styles.featureItem}>
-                  <Icon name="image" size={20} color={COLORS.primary} />
-                  <Text style={styles.featureText}>Photo Storage</Text>
+                <View style={styles.storageFeature}>
+                  <Icon name="search" size={16} color={COLORS.primary} />
+                  <Text style={styles.storageFeatureText}>
+                    Fast search and filtering
+                  </Text>
                 </View>
-                <View style={styles.featureItem}>
-                  <Icon name="search" size={20} color={COLORS.accent} />
-                  <Text style={styles.featureText}>Search & Filter</Text>
+                <View style={styles.storageFeature}>
+                  <Icon name="image" size={16} color={COLORS.accent} />
+                  <Text style={styles.storageFeatureText}>
+                    Photo storage with metadata
+                  </Text>
                 </View>
               </View>
             </View>
@@ -274,32 +541,54 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scrollContent: {
-    padding: SPACING.md,
+    padding: SPACING.lg,
     paddingBottom: SPACING.xl,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textLight,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
+    alignItems: 'flex-start',
+    marginBottom: SPACING.xl,
+  },
+  headerContent: {
+    flex: 1,
   },
   title: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
+    fontSize: TYPOGRAPHY.fontSize['3xl'],
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.text,
+    marginBottom: SPACING.xs,
   },
   subtitle: {
     fontSize: TYPOGRAPHY.fontSize.base,
     color: COLORS.textLight,
-    marginTop: SPACING.xs,
+    lineHeight: 22,
   },
-  filterButton: {
-    width: 48,
-    height: 48,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: `${COLORS.primary}10`,
-    justifyContent: 'center',
+  newStormButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    marginLeft: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  newStormButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.surface,
+    marginLeft: SPACING.sm,
   },
   emptyState: {
     alignItems: 'center',
@@ -322,13 +611,13 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.base,
     color: COLORS.textLight,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
     marginBottom: SPACING.lg,
   },
   emptyButton: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     ...SHADOWS.sm,
   },
@@ -337,17 +626,26 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: COLORS.surface,
   },
-  statsBar: {
-    flexDirection: 'row',
+  statsCard: {
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING.lg,
-    ...SHADOWS.sm,
+  },
+  statsTitle: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+    marginBottom: SPACING.lg,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.lg,
   },
   statItem: {
-    flex: 1,
     alignItems: 'center',
+    flex: 1,
   },
   statNumber: {
     fontSize: TYPOGRAPHY.fontSize['2xl'],
@@ -359,141 +657,141 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textLight,
   },
-  statDivider: {
-    width: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: SPACING.md,
+  typeDistribution: {
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
-  stormList: {
-    paddingBottom: SPACING.md,
-  },
-  stormCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    marginBottom: SPACING.lg,
-    overflow: 'hidden',
-  },
-  stormCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  stormTypeIndicator: {
-    width: 32,
-    height: 32,
-    borderRadius: BORDER_RADIUS.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.sm,
-  },
-  stormTypeText: {
+  distributionTitle: {
     fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text,
-  },
-  imagePlaceholder: {
-    height: 180,
-    backgroundColor: `${COLORS.primary}05`,
-  },
-  imageColor: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    marginTop: SPACING.sm,
-  },
-  stormCardContent: {
-    padding: SPACING.md,
-  },
-  stormTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: COLORS.text,
     marginBottom: SPACING.sm,
   },
-  stormMeta: {
-    flexDirection: 'row',
-    marginBottom: SPACING.md,
+  distributionBars: {
+    gap: SPACING.sm,
   },
-  metaItem: {
+  distributionItem: {
+    marginBottom: SPACING.xs,
+  },
+  distributionBarContainer: {
+    height: 8,
+    backgroundColor: `${COLORS.primary}10`,
+    borderRadius: BORDER_RADIUS.sm,
+    overflow: 'hidden',
+    marginBottom: 2,
+  },
+  distributionBar: {
+    height: '100%',
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  distributionLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: SPACING.lg,
   },
-  metaText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textLight,
-    marginLeft: SPACING.xs,
+  distributionColor: {
+    width: 12,
+    height: 12,
+    borderRadius: BORDER_RADIUS.sm,
+    marginRight: SPACING.xs,
   },
-  stormDescription: {
-    fontSize: TYPOGRAPHY.fontSize.base,
+  distributionText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
     color: COLORS.text,
-    lineHeight: 20,
   },
-  stormCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  noResults: {
     alignItems: 'center',
-    padding: SPACING.md,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    padding: SPACING.xl,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    marginVertical: SPACING.sm,
+    ...SHADOWS.md,
   },
-  viewButton: {
+  noResultsTitle: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xs,
+  },
+  noResultsText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textLight,
+    textAlign: 'center',
+  },
+  stormList: {
+    gap: SPACING.md,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.lg,
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    flex: 1,
+    ...SHADOWS.sm,
   },
-  viewButtonText: {
+  exportButton: {
+    backgroundColor: `${COLORS.primary}10`,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  clearButton: {
+    backgroundColor: `${COLORS.error}10`,
+    borderWidth: 1,
+    borderColor: COLORS.error,
+  },
+  exportButtonText: {
     fontSize: TYPOGRAPHY.fontSize.base,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.primary,
-    marginRight: SPACING.xs,
+    marginLeft: SPACING.sm,
   },
-  shareButton: {
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: `${COLORS.primary}10`,
-    justifyContent: 'center',
-    alignItems: 'center',
+  clearButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.error,
+    marginLeft: SPACING.sm,
   },
-  importSection: {
+  storageInfo: {
     backgroundColor: `${COLORS.info}10`,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
-    marginTop: SPACING.md,
     borderLeftWidth: 4,
     borderLeftColor: COLORS.info,
   },
-  importTitle: {
+  storageTitle: {
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: COLORS.info,
     marginBottom: SPACING.sm,
   },
-  importDescription: {
+  storageText: {
     fontSize: TYPOGRAPHY.fontSize.base,
-    color: COLORS.textLight,
+    color: COLORS.text,
     lineHeight: 22,
     marginBottom: SPACING.md,
   },
-  importFeatures: {
+  storageFeatures: {
+    gap: SPACING.sm,
+  },
+  storageFeature: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  featureItem: {
     alignItems: 'center',
-    flex: 1,
   },
-  featureText: {
+  storageFeatureText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textLight,
-    marginTop: SPACING.xs,
-    textAlign: 'center',
+    color: COLORS.text,
+    marginLeft: SPACING.sm,
+    flex: 1,
   },
 });
 
