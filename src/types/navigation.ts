@@ -7,6 +7,7 @@ export type RootStackParamList = {
   Weather: undefined;
   StormDocumentation: undefined;
   StormGallery: undefined;
+  Map: undefined;
   StormDetail: { stormId: string };
   Settings: undefined;
 };
@@ -25,5 +26,9 @@ export type StormDocumentationScreenProps = {
 };
 
 export type StormGalleryScreenProps = {
+  navigation: any;
+};
+
+export type MapScreenProps = {
   navigation: any;
 };

@@ -16,6 +16,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import WeatherScreen from './src/screens/WeatherScreen';
 import StormDocumentationScreen from './src/screens/StormDocumentationScreen';
 import StormGalleryScreen from './src/screens/StormGalleryScreen';
+import MapScreen from './src/screens/MapScreen';
 
 // Import navigation types
 import { RootStackParamList } from './src/types/navigation';
@@ -71,6 +72,11 @@ function App(): React.JSX.Element {
             name="StormGallery"
             component={StormGalleryScreen}
             options={{ title: 'Storm Gallery' }}
+          />
+          <Stack.Screen
+            name="Map"
+            component={MapScreen}
+            options={{ title: 'Storm Map' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

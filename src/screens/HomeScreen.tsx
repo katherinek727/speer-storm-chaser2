@@ -64,8 +64,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       description: 'View storm locations on interactive maps',
       icon: 'map',
       color: '#9C27B0',
-      route: 'Home' as const,
-      comingSoon: true,
+      route: 'Map' as const,
     },
     {
       id: 'alerts',
