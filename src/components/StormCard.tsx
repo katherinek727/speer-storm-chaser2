@@ -7,7 +7,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS, STORM_TYPES } from '../constants';
-import { StormDocument, StormType } from '../types';
+import { StormType } from '../types';
+import { StormDocument } from '../services/storageService';
 import { formatDate } from '../utils/helpers';
 
 interface StormCardProps {
@@ -67,15 +68,15 @@ const StormCard: React.FC<StormCardProps> = ({
             {storm.notes.split('\n')[0] || 'Storm Event'}
           </Text>
           <Text style={styles.compactDate}>
-            {formatDate(storm.dateTime).split(',')[0]}
+            {formatDate(storm.createdAt).split(',')[0]}
           </Text>
         </View>
         <View style={styles.compactFooter}>
           <Text style={styles.compactLocation} numberOfLines={1}>
-            {storm.location.address || 'Unknown Location'}
+            {storm.location || 'Unknown Location'}
           </Text>
           <Text style={styles.compactCondition}>
-            {storm.weatherConditions}
+            {storm.weatherCondition}
           </Text>
         </View>
       </TouchableOpacity>
@@ -127,8 +128,8 @@ const StormCard: React.FC<StormCardProps> = ({
 
       {/* Photo preview */}
       <View style={styles.photoContainer}>
-        {storm.imageUri ? (
-          <Image source={{ uri: storm.imageUri }} style={styles.photo} />
+        {storm.photo?.uri ? (
+          <Image source={{ uri: storm.photo.uri }} style={styles.photo} />
         ) : (
           <View style={[styles.photoPlaceholder, { backgroundColor: stormColor + '20' }]}>
             <Icon name="image" size={48} color={stormColor} />
@@ -149,13 +150,13 @@ const StormCard: React.FC<StormCardProps> = ({
           <View style={styles.metaItem}>
             <Icon name="calendar" size={14} color={COLORS.textLight} />
             <Text style={styles.metaText}>
-              {formatDate(storm.dateTime)}
+              {formatDate(storm.createdAt)}
             </Text>
           </View>
           <View style={styles.metaItem}>
             <Icon name="map-marker" size={14} color={COLORS.textLight} />
             <Text style={styles.metaText} numberOfLines={1}>
-              {storm.location.address || 'Unknown Location'}
+              {storm.location || 'Unknown Location'}
             </Text>
           </View>
         </View>
@@ -169,33 +170,29 @@ const StormCard: React.FC<StormCardProps> = ({
         {/* Weather conditions */}
         <View style={styles.conditions}>
           <Text style={styles.conditionsLabel}>Conditions:</Text>
-          <Text style={styles.conditionsText}>{storm.weatherConditions}</Text>
+          <Text style={styles.conditionsText}>{storm.weatherCondition}</Text>
         </View>
 
         {/* Weather metrics */}
-        {storm.metadata && (
+        {storm.photo?.location && (
           <View style={styles.metrics}>
-            {storm.metadata.temperature !== undefined && (
+            <View style={styles.metricItem}>
+              <Icon name="latitude" size={12} color={COLORS.primary} />
+              <Text style={styles.metricText}>
+                {storm.photo.location.latitude.toFixed(4)}°
+              </Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Icon name="longitude" size={12} color={COLORS.secondary} />
+              <Text style={styles.metricText}>
+                {storm.photo.location.longitude.toFixed(4)}°
+              </Text>
+            </View>
+            {storm.photo.location.altitude !== undefined && (
               <View style={styles.metricItem}>
-                <Icon name="thermometer" size={12} color={COLORS.error} />
+                <Icon name="altimeter" size={12} color={COLORS.info} />
                 <Text style={styles.metricText}>
-                  {storm.metadata.temperature}°F
-                </Text>
-              </View>
-            )}
-            {storm.metadata.windSpeed !== undefined && (
-              <View style={styles.metricItem}>
-                <Icon name="weather-windy" size={12} color={COLORS.secondary} />
-                <Text style={styles.metricText}>
-                  {storm.metadata.windSpeed} mph
-                </Text>
-              </View>
-            )}
-            {storm.metadata.precipitation !== undefined && (
-              <View style={styles.metricItem}>
-                <Icon name="weather-rainy" size={12} color={COLORS.info} />
-                <Text style={styles.metricText}>
-                  {storm.metadata.precipitation} in
+                  {Math.round(storm.photo.location.altitude)} ft
                 </Text>
               </View>
             )}

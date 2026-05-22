@@ -1,319 +1,623 @@
 /**
  * Storage Service
- * Handles local data persistence for storm documents
+ * Handles local data persistence using AsyncStorage
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StormDocument, ApiResponse, Timestamped } from '../types';
-import { generateId } from '../utils/helpers';
+import { CameraPhoto } from './cameraService';
+import { StormType } from '../types';
 
+export interface StormDocument {
+  id: string;
+  stormType: StormType;
+  weatherCondition: string;
+  notes: string;
+  location: string;
+  photo: CameraPhoto;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: {
+    intensity?: number; // 1-10 scale
+    duration?: number; // minutes
+    damageReported?: boolean;
+    safetyConcerns?: string[];
+    tags?: string[];
+  };
+}
+
+export interface StorageStats {
+  totalDocuments: number;
+  byStormType: Record<StormType, number>;
+  byWeatherCondition: Record<string, number>;
+  byDate: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+  totalPhotos: number;
+  storageSize?: number; // in bytes
+}
+
+export interface FilterOptions {
+  stormType?: StormType | 'all';
+  weatherCondition?: string | 'all';
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  searchQuery?: string;
+  sortBy?: 'date' | 'type' | 'location' | 'intensity';
+  sortOrder?: 'asc' | 'desc';
+}
+
+// Storage keys
 const STORAGE_KEYS = {
   STORM_DOCUMENTS: '@StormChaser:stormDocuments',
-  SETTINGS: '@StormChaser:settings',
-  LAST_LOCATION: '@StormChaser:lastLocation',
+  STORAGE_STATS: '@StormChaser:storageStats',
+  APP_SETTINGS: '@StormChaser:appSettings',
+  LAST_SYNC: '@StormChaser:lastSync',
 };
 
 /**
- * Save a storm document to local storage
+ * Generate a unique ID for documents
+ */
+const generateId = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+};
+
+/**
+ * Save a storm document
  */
 export const saveStormDocument = async (
-  document: Omit<StormDocument, 'id'>,
-): Promise<ApiResponse<StormDocument>> => {
+  document: Omit<StormDocument, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<StormDocument> => {
   try {
-    const id = generateId();
-    const completeDocument: StormDocument = {
+    const now = new Date().toISOString();
+    const newDocument: StormDocument = {
       ...document,
-      id,
+      id: generateId(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     // Get existing documents
     const existingDocuments = await getStormDocuments();
-    const updatedDocuments = [...existingDocuments.data, completeDocument];
-
+    
+    // Add new document
+    const updatedDocuments = [...existingDocuments, newDocument];
+    
     // Save to storage
     await AsyncStorage.setItem(
       STORAGE_KEYS.STORM_DOCUMENTS,
-      JSON.stringify(updatedDocuments),
+      JSON.stringify(updatedDocuments)
     );
 
-    return {
-      data: completeDocument,
-      success: true,
-      message: 'Storm document saved successfully',
-      timestamp: new Date().toISOString(),
-    };
+    // Update storage stats
+    await updateStorageStats();
+
+    return newDocument;
   } catch (error) {
     console.error('Error saving storm document:', error);
-    return {
-      data: {} as StormDocument,
-      success: false,
-      message: 'Failed to save storm document',
-      timestamp: new Date().toISOString(),
-    };
+    throw new Error('Failed to save storm document');
   }
 };
 
 /**
- * Get all storm documents from local storage
+ * Get all storm documents
  */
-export const getStormDocuments = async (): Promise<ApiResponse<StormDocument[]>> => {
+export const getStormDocuments = async (): Promise<StormDocument[]> => {
   try {
     const documentsJson = await AsyncStorage.getItem(STORAGE_KEYS.STORM_DOCUMENTS);
     
     if (!documentsJson) {
-      return {
-        data: [],
-        success: true,
-        message: 'No storm documents found',
-        timestamp: new Date().toISOString(),
-      };
+      return [];
     }
 
-    const documents = JSON.parse(documentsJson) as StormDocument[];
-    
-    return {
-      data: documents,
-      success: true,
-      message: 'Storm documents retrieved successfully',
-      timestamp: new Date().toISOString(),
-    };
+    return JSON.parse(documentsJson);
   } catch (error) {
     console.error('Error getting storm documents:', error);
-    return {
-      data: [],
-      success: false,
-      message: 'Failed to retrieve storm documents',
-      timestamp: new Date().toISOString(),
-    };
+    return [];
   }
 };
 
 /**
- * Get a specific storm document by ID
+ * Get filtered storm documents
  */
-export const getStormDocumentById = async (
-  id: string,
-): Promise<ApiResponse<StormDocument>> => {
+export const getFilteredStormDocuments = async (
+  filterOptions: FilterOptions = {}
+): Promise<StormDocument[]> => {
   try {
-    const documentsResponse = await getStormDocuments();
+    const allDocuments = await getStormDocuments();
     
-    if (!documentsResponse.success) {
-      return {
-        data: {} as StormDocument,
-        success: false,
-        message: documentsResponse.message,
-        timestamp: new Date().toISOString(),
-      };
-    }
+    return allDocuments.filter((doc) => {
+      // Filter by storm type
+      if (filterOptions.stormType && filterOptions.stormType !== 'all') {
+        if (doc.stormType !== filterOptions.stormType) {
+          return false;
+        }
+      }
 
-    const document = documentsResponse.data.find((doc) => doc.id === id);
-    
-    if (!document) {
-      return {
-        data: {} as StormDocument,
-        success: false,
-        message: 'Storm document not found',
-        timestamp: new Date().toISOString(),
-      };
-    }
+      // Filter by weather condition
+      if (filterOptions.weatherCondition && filterOptions.weatherCondition !== 'all') {
+        if (doc.weatherCondition !== filterOptions.weatherCondition) {
+          return false;
+        }
+      }
 
-    return {
-      data: document,
-      success: true,
-      message: 'Storm document retrieved successfully',
-      timestamp: new Date().toISOString(),
-    };
+      // Filter by date range
+      if (filterOptions.dateRange) {
+        const docDate = new Date(doc.createdAt);
+        if (
+          docDate < filterOptions.dateRange.start ||
+          docDate > filterOptions.dateRange.end
+        ) {
+          return false;
+        }
+      }
+
+      // Filter by search query
+      if (filterOptions.searchQuery) {
+        const query = filterOptions.searchQuery.toLowerCase();
+        const searchableText = [
+          doc.notes,
+          doc.location,
+          doc.stormType,
+          doc.weatherCondition,
+          ...(doc.metadata?.tags || []),
+        ].join(' ').toLowerCase();
+
+        if (!searchableText.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).sort((a, b) => {
+      // Sort documents
+      if (!filterOptions.sortBy) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // Default: newest first
+      }
+
+      let aValue: any;
+      let bValue: any;
+
+      switch (filterOptions.sortBy) {
+        case 'date':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        case 'type':
+          aValue = a.stormType;
+          bValue = b.stormType;
+          break;
+        case 'location':
+          aValue = a.location;
+          bValue = b.location;
+          break;
+        case 'intensity':
+          aValue = a.metadata?.intensity || 0;
+          bValue = b.metadata?.intensity || 0;
+          break;
+        default:
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+      }
+
+      const order = filterOptions.sortOrder === 'asc' ? 1 : -1;
+      
+      if (aValue < bValue) return -1 * order;
+      if (aValue > bValue) return 1 * order;
+      return 0;
+    });
   } catch (error) {
-    console.error('Error getting storm document:', error);
-    return {
-      data: {} as StormDocument,
-      success: false,
-      message: 'Failed to retrieve storm document',
-      timestamp: new Date().toISOString(),
-    };
+    console.error('Error filtering storm documents:', error);
+    return [];
   }
 };
 
 /**
- * Update an existing storm document
+ * Get a single storm document by ID
+ */
+export const getStormDocumentById = async (id: string): Promise<StormDocument | null> => {
+  try {
+    const documents = await getStormDocuments();
+    return documents.find(doc => doc.id === id) || null;
+  } catch (error) {
+    console.error('Error getting storm document by ID:', error);
+    return null;
+  }
+};
+
+/**
+ * Update a storm document
  */
 export const updateStormDocument = async (
   id: string,
-  updates: Partial<StormDocument>,
-): Promise<ApiResponse<StormDocument>> => {
+  updates: Partial<Omit<StormDocument, 'id' | 'createdAt'>>
+): Promise<StormDocument | null> => {
   try {
-    const documentsResponse = await getStormDocuments();
-    
-    if (!documentsResponse.success) {
-      return {
-        data: {} as StormDocument,
-        success: false,
-        message: documentsResponse.message,
-        timestamp: new Date().toISOString(),
-      };
-    }
+    const documents = await getStormDocuments();
+    const documentIndex = documents.findIndex(doc => doc.id === id);
 
-    const documentIndex = documentsResponse.data.findIndex((doc) => doc.id === id);
-    
     if (documentIndex === -1) {
-      return {
-        data: {} as StormDocument,
-        success: false,
-        message: 'Storm document not found',
-        timestamp: new Date().toISOString(),
-      };
+      return null;
     }
 
-    const updatedDocument = {
-      ...documentsResponse.data[documentIndex],
+    const updatedDocument: StormDocument = {
+      ...documents[documentIndex],
       ...updates,
-      id, // Ensure ID doesn't change
+      updatedAt: new Date().toISOString(),
     };
 
-    const updatedDocuments = [...documentsResponse.data];
-    updatedDocuments[documentIndex] = updatedDocument;
+    documents[documentIndex] = updatedDocument;
 
     await AsyncStorage.setItem(
       STORAGE_KEYS.STORM_DOCUMENTS,
-      JSON.stringify(updatedDocuments),
+      JSON.stringify(documents)
     );
 
-    return {
-      data: updatedDocument,
-      success: true,
-      message: 'Storm document updated successfully',
-      timestamp: new Date().toISOString(),
-    };
+    // Update storage stats
+    await updateStorageStats();
+
+    return updatedDocument;
   } catch (error) {
     console.error('Error updating storm document:', error);
-    return {
-      data: {} as StormDocument,
-      success: false,
-      message: 'Failed to update storm document',
-      timestamp: new Date().toISOString(),
-    };
+    throw new Error('Failed to update storm document');
   }
 };
 
 /**
  * Delete a storm document
  */
-export const deleteStormDocument = async (
-  id: string,
-): Promise<ApiResponse<boolean>> => {
+export const deleteStormDocument = async (id: string): Promise<boolean> => {
   try {
-    const documentsResponse = await getStormDocuments();
-    
-    if (!documentsResponse.success) {
-      return {
-        data: false,
-        success: false,
-        message: documentsResponse.message,
-        timestamp: new Date().toISOString(),
-      };
+    const documents = await getStormDocuments();
+    const filteredDocuments = documents.filter(doc => doc.id !== id);
+
+    if (filteredDocuments.length === documents.length) {
+      return false; // Document not found
     }
 
-    const filteredDocuments = documentsResponse.data.filter((doc) => doc.id !== id);
-    
     await AsyncStorage.setItem(
       STORAGE_KEYS.STORM_DOCUMENTS,
-      JSON.stringify(filteredDocuments),
+      JSON.stringify(filteredDocuments)
     );
 
-    return {
-      data: true,
-      success: true,
-      message: 'Storm document deleted successfully',
-      timestamp: new Date().toISOString(),
-    };
+    // Update storage stats
+    await updateStorageStats();
+
+    return true;
   } catch (error) {
     console.error('Error deleting storm document:', error);
-    return {
-      data: false,
-      success: false,
-      message: 'Failed to delete storm document',
-      timestamp: new Date().toISOString(),
-    };
+    throw new Error('Failed to delete storm document');
   }
 };
 
 /**
- * Clear all storm documents (for testing/reset)
+ * Delete multiple storm documents
  */
-export const clearAllStormDocuments = async (): Promise<ApiResponse<boolean>> => {
+export const deleteMultipleStormDocuments = async (ids: string[]): Promise<number> => {
+  try {
+    const documents = await getStormDocuments();
+    const initialCount = documents.length;
+    
+    const filteredDocuments = documents.filter(doc => !ids.includes(doc.id));
+    const deletedCount = initialCount - filteredDocuments.length;
+
+    if (deletedCount > 0) {
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.STORM_DOCUMENTS,
+        JSON.stringify(filteredDocuments)
+      );
+
+      // Update storage stats
+      await updateStorageStats();
+    }
+
+    return deletedCount;
+  } catch (error) {
+    console.error('Error deleting multiple storm documents:', error);
+    throw new Error('Failed to delete storm documents');
+  }
+};
+
+/**
+ * Clear all storm documents
+ */
+export const clearAllStormDocuments = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(STORAGE_KEYS.STORM_DOCUMENTS);
+    await updateStorageStats();
+  } catch (error) {
+    console.error('Error clearing all storm documents:', error);
+    throw new Error('Failed to clear storm documents');
+  }
+};
+
+/**
+ * Get storage statistics
+ */
+export const getStorageStats = async (): Promise<StorageStats> => {
+  try {
+    const statsJson = await AsyncStorage.getItem(STORAGE_KEYS.STORAGE_STATS);
     
+    if (statsJson) {
+      return JSON.parse(statsJson);
+    }
+
+    // Generate initial stats
+    return await updateStorageStats();
+  } catch (error) {
+    console.error('Error getting storage stats:', error);
+    return getDefaultStorageStats();
+  }
+};
+
+/**
+ * Update storage statistics
+ */
+export const updateStorageStats = async (): Promise<StorageStats> => {
+  try {
+    const documents = await getStormDocuments();
+    
+    const stats: StorageStats = {
+      totalDocuments: documents.length,
+      byStormType: {} as Record<StormType, number>,
+      byWeatherCondition: {},
+      byDate: {
+        today: 0,
+        thisWeek: 0,
+        thisMonth: 0,
+      },
+      totalPhotos: documents.length,
+    };
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    documents.forEach(doc => {
+      // Count by storm type
+      stats.byStormType[doc.stormType] = (stats.byStormType[doc.stormType] || 0) + 1;
+
+      // Count by weather condition
+      stats.byWeatherCondition[doc.weatherCondition] = 
+        (stats.byWeatherCondition[doc.weatherCondition] || 0) + 1;
+
+      // Count by date
+      const docDate = new Date(doc.createdAt);
+      
+      if (docDate >= today) {
+        stats.byDate.today++;
+      }
+      
+      if (docDate >= weekAgo) {
+        stats.byDate.thisWeek++;
+      }
+      
+      if (docDate >= monthAgo) {
+        stats.byDate.thisMonth++;
+      }
+    });
+
+    // Calculate storage size (approximate)
+    const documentsJson = JSON.stringify(documents);
+    stats.storageSize = new Blob([documentsJson]).size;
+
+    // Save stats
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.STORAGE_STATS,
+      JSON.stringify(stats)
+    );
+
+    return stats;
+  } catch (error) {
+    console.error('Error updating storage stats:', error);
+    return getDefaultStorageStats();
+  }
+};
+
+/**
+ * Get default storage stats
+ */
+const getDefaultStorageStats = (): StorageStats => {
+  return {
+    totalDocuments: 0,
+    byStormType: {} as Record<StormType, number>,
+    byWeatherCondition: {},
+    byDate: {
+      today: 0,
+      thisWeek: 0,
+      thisMonth: 0,
+    },
+    totalPhotos: 0,
+    storageSize: 0,
+  };
+};
+
+/**
+ * Export data as JSON
+ */
+export const exportData = async (): Promise<string> => {
+  try {
+    const documents = await getStormDocuments();
+    const stats = await getStorageStats();
+    
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      documentCount: documents.length,
+      documents,
+      statistics: stats,
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    throw new Error('Failed to export data');
+  }
+};
+
+/**
+ * Import data from JSON
+ */
+export const importData = async (jsonData: string): Promise<{
+  importedCount: number;
+  totalCount: number;
+}> => {
+  try {
+    const data = JSON.parse(jsonData);
+    
+    if (!data.documents || !Array.isArray(data.documents)) {
+      throw new Error('Invalid data format');
+    }
+
+    const existingDocuments = await getStormDocuments();
+    const newDocuments = data.documents.filter((newDoc: StormDocument) => {
+      return !existingDocuments.some(existingDoc => existingDoc.id === newDoc.id);
+    });
+
+    const allDocuments = [...existingDocuments, ...newDocuments];
+
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.STORM_DOCUMENTS,
+      JSON.stringify(allDocuments)
+    );
+
+    await updateStorageStats();
+
     return {
-      data: true,
-      success: true,
-      message: 'All storm documents cleared',
-      timestamp: new Date().toISOString(),
+      importedCount: newDocuments.length,
+      totalCount: allDocuments.length,
     };
   } catch (error) {
-    console.error('Error clearing storm documents:', error);
+    console.error('Error importing data:', error);
+    throw new Error('Failed to import data');
+  }
+};
+
+/**
+ * Search storm documents
+ */
+export const searchStormDocuments = async (
+  query: string,
+  limit: number = 50
+): Promise<StormDocument[]> => {
+  try {
+    const documents = await getStormDocuments();
+    const searchQuery = query.toLowerCase();
+
+    return documents
+      .filter(doc => {
+        const searchableText = [
+          doc.notes,
+          doc.location,
+          doc.stormType,
+          doc.weatherCondition,
+          ...(doc.metadata?.tags || []),
+        ].join(' ').toLowerCase();
+
+        return searchableText.includes(searchQuery);
+      })
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error searching storm documents:', error);
+    return [];
+  }
+};
+
+/**
+ * Get document count by date range
+ */
+export const getDocumentCountByDateRange = async (
+  startDate: Date,
+  endDate: Date
+): Promise<number> => {
+  try {
+    const documents = await getStormDocuments();
+    
+    return documents.filter(doc => {
+      const docDate = new Date(doc.createdAt);
+      return docDate >= startDate && docDate <= endDate;
+    }).length;
+  } catch (error) {
+    console.error('Error getting document count by date range:', error);
+    return 0;
+  }
+};
+
+/**
+ * Backup data to a file (simulated)
+ */
+export const backupData = async (): Promise<{
+  success: boolean;
+  backupSize?: number;
+  timestamp?: string;
+}> => {
+  try {
+    const exportJson = await exportData();
+    const backupSize = new Blob([exportJson]).size;
+    const timestamp = new Date().toISOString();
+
+    // In a real implementation, this would save to a file
+    // For now, we'll just simulate the backup
+    console.log('Backup created:', { backupSize, timestamp });
+
     return {
-      data: false,
+      success: true,
+      backupSize,
+      timestamp,
+    };
+  } catch (error) {
+    console.error('Error backing up data:', error);
+    return {
       success: false,
-      message: 'Failed to clear storm documents',
-      timestamp: new Date().toISOString(),
     };
   }
 };
 
 /**
- * Save app settings
+ * Check storage health
  */
-export const saveSettings = async (settings: any): Promise<ApiResponse<boolean>> => {
+export const checkStorageHealth = async (): Promise<{
+  isHealthy: boolean;
+  issues: string[];
+  documentCount: number;
+  storageSize?: number;
+}> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    const documents = await getStormDocuments();
+    const stats = await getStorageStats();
     
-    return {
-      data: true,
-      success: true,
-      message: 'Settings saved successfully',
-      timestamp: new Date().toISOString(),
-    };
-  } catch (error) {
-    console.error('Error saving settings:', error);
-    return {
-      data: false,
-      success: false,
-      message: 'Failed to save settings',
-      timestamp: new Date().toISOString(),
-    };
-  }
-};
+    const issues: string[] = [];
 
-/**
- * Get app settings
- */
-export const getSettings = async (): Promise<ApiResponse<any>> => {
-  try {
-    const settingsJson = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
+    // Check for corrupted documents
+    const corruptedDocs = documents.filter(doc => 
+      !doc.id || !doc.createdAt || !doc.photo
+    );
     
-    if (!settingsJson) {
-      return {
-        data: {},
-        success: true,
-        message: 'No settings found',
-        timestamp: new Date().toISOString(),
-      };
+    if (corruptedDocs.length > 0) {
+      issues.push(`Found ${corruptedDocs.length} potentially corrupted documents`);
+    }
+
+    // Check storage size (warning if > 10MB)
+    if (stats.storageSize && stats.storageSize > 10 * 1024 * 1024) {
+      issues.push('Storage size is getting large (>10MB)');
     }
 
     return {
-      data: JSON.parse(settingsJson),
-      success: true,
-      message: 'Settings retrieved successfully',
-      timestamp: new Date().toISOString(),
+      isHealthy: issues.length === 0,
+      issues,
+      documentCount: documents.length,
+      storageSize: stats.storageSize,
     };
   } catch (error) {
-    console.error('Error getting settings:', error);
+    console.error('Error checking storage health:', error);
     return {
-      data: {},
-      success: false,
-      message: 'Failed to retrieve settings',
-      timestamp: new Date().toISOString(),
+      isHealthy: false,
+      issues: ['Storage health check failed'],
+      documentCount: 0,
     };
   }
 };

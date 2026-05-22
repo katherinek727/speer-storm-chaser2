@@ -28,8 +28,16 @@ import {
 } from '../constants';
 import StormCard from '../components/StormCard';
 import FilterBar from '../components/FilterBar';
-import { StormDocument, StormType } from '../types';
-import { getStormDocuments, deleteStormDocument, clearAllStormDocuments } from '../services/storageService';
+import { StormType } from '../types';
+import { 
+  StormDocument, 
+  getStormDocuments, 
+  getFilteredStormDocuments,
+  deleteStormDocument, 
+  clearAllStormDocuments,
+  getStorageStats,
+  FilterOptions
+} from '../services/storageService';
 import { formatDate } from '../utils/helpers';
 
 type StormGalleryScreenNavigationProp = StackNavigationProp<
@@ -54,119 +62,29 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [sortBy, setSortBy] = React.useState<'date' | 'type' | 'location'>('date');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
 
-  // Mock data for demonstration
-  const mockStorms: StormDocument[] = [
-    {
-      id: '1',
-      imageUri: 'https://via.placeholder.com/400x300/FF9800/FFFFFF?text=Thunderstorm',
-      weatherConditions: 'Heavy Rain, Lightning',
-      location: {
-        latitude: 39.7392,
-        longitude: -104.9903,
-        address: 'Denver, CO',
-        city: 'Denver',
-        state: 'Colorado',
-        country: 'USA',
-      },
-      dateTime: '2024-05-15T14:30:00Z',
-      notes: 'Intense thunderstorm with frequent lightning strikes over the Rocky Mountains. Heavy rainfall caused minor flooding in low-lying areas.',
-      stormType: 'thunderstorm',
-      metadata: {
-        temperature: 68,
-        windSpeed: 25,
-        precipitation: 2.5,
-        humidity: 85,
-      },
-      createdAt: '2024-05-15T14:30:00Z',
-      updatedAt: '2024-05-15T14:30:00Z',
-    },
-    {
-      id: '2',
-      imageUri: 'https://via.placeholder.com/400x300/9C27B0/FFFFFF?text=Hurricane',
-      weatherConditions: 'High Winds, Storm Surge',
-      location: {
-        latitude: 25.7617,
-        longitude: -80.1918,
-        address: 'Miami, FL',
-        city: 'Miami',
-        state: 'Florida',
-        country: 'USA',
-      },
-      dateTime: '2024-08-22T09:15:00Z',
-      notes: 'Category 3 hurricane approaching coastline. Evacuation orders issued for coastal areas. Storm surge expected to reach 8 feet.',
-      stormType: 'hurricane',
-      metadata: {
-        temperature: 82,
-        windSpeed: 115,
-        precipitation: 12.5,
-        humidity: 90,
-      },
-      createdAt: '2024-08-22T09:15:00Z',
-      updatedAt: '2024-08-22T09:15:00Z',
-    },
-    {
-      id: '3',
-      imageUri: 'https://via.placeholder.com/400x300/2196F3/FFFFFF?text=Blizzard',
-      weatherConditions: 'Heavy Snow, Whiteout',
-      location: {
-        latitude: 42.3601,
-        longitude: -71.0589,
-        address: 'Boston, MA',
-        city: 'Boston',
-        state: 'Massachusetts',
-        country: 'USA',
-      },
-      dateTime: '2024-01-10T11:45:00Z',
-      notes: 'Severe blizzard conditions with visibility less than 100 feet. Accumulation expected to reach 18 inches. Travel advisories in effect.',
-      stormType: 'blizzard',
-      metadata: {
-        temperature: 18,
-        windSpeed: 35,
-        precipitation: 18,
-        humidity: 75,
-      },
-      createdAt: '2024-01-10T11:45:00Z',
-      updatedAt: '2024-01-10T11:45:00Z',
-    },
-    {
-      id: '4',
-      imageUri: 'https://via.placeholder.com/400x300/F44336/FFFFFF?text=Tornado',
-      weatherConditions: 'Rotating Funnel Cloud',
-      location: {
-        latitude: 35.4676,
-        longitude: -97.5164,
-        address: 'Oklahoma City, OK',
-        city: 'Oklahoma City',
-        state: 'Oklahoma',
-        country: 'USA',
-      },
-      dateTime: '2024-04-05T16:20:00Z',
-      notes: 'Tornado touchdown reported 5 miles west of city. Funnel cloud visible for 15 minutes. No injuries reported, minor property damage.',
-      stormType: 'tornado',
-      metadata: {
-        temperature: 72,
-        windSpeed: 180,
-        precipitation: 0.5,
-        humidity: 65,
-      },
-      createdAt: '2024-04-05T16:20:00Z',
-      updatedAt: '2024-04-05T16:20:00Z',
-    },
-  ];
+
 
   const loadStorms = async () => {
     try {
-      // In a real implementation, this would load from storageService
-      // const response = await getStormDocuments();
-      // if (response.success) {
-      //   setStorms(response.data);
-      // }
+      // Load from storage service
+      const documents = await getStormDocuments();
+      setStorms(documents);
       
-      // For now, use mock data
-      setStorms(mockStorms);
-      setFilteredStorms(mockStorms);
+      // Apply current filters
+      const filterOptions: FilterOptions = {
+        stormType: selectedType !== 'all' ? selectedType : undefined,
+        searchQuery: searchQuery.trim() || undefined,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      };
+      
+      const filtered = await getFilteredStormDocuments(filterOptions);
+      setFilteredStorms(filtered);
     } catch (error) {
       console.error('Error loading storms:', error);
+      // Fallback to empty array
+      setStorms([]);
+      setFilteredStorms([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -184,44 +102,19 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
 
   // Apply filters whenever filter states change
   React.useEffect(() => {
-    let filtered = [...storms];
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (storm) =>
-          storm.notes.toLowerCase().includes(query) ||
-          storm.weatherConditions.toLowerCase().includes(query) ||
-          (storm.location.address?.toLowerCase().includes(query) || false),
-      );
-    }
-
-    // Apply type filter
-    if (selectedType !== 'all') {
-      filtered = filtered.filter((storm) => storm.stormType === selectedType);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let comparison = 0;
+    const applyFilters = async () => {
+      const filterOptions: FilterOptions = {
+        stormType: selectedType !== 'all' ? selectedType : undefined,
+        searchQuery: searchQuery.trim() || undefined,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      };
       
-      switch (sortBy) {
-        case 'date':
-          comparison = new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
-          break;
-        case 'type':
-          comparison = a.stormType.localeCompare(b.stormType);
-          break;
-        case 'location':
-          comparison = (a.location.address || '').localeCompare(b.location.address || '');
-          break;
-      }
+      const filtered = await getFilteredStormDocuments(filterOptions);
+      setFilteredStorms(filtered);
+    };
 
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    setFilteredStorms(filtered);
+    applyFilters();
   }, [storms, searchQuery, selectedType, sortBy, sortOrder]);
 
   const handleDeleteStorm = (stormId: string) => {
@@ -235,9 +128,15 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              // In real implementation: await deleteStormDocument(stormId);
-              setStorms(storms.filter((storm) => storm.id !== stormId));
+              const success = await deleteStormDocument(stormId);
+              if (success) {
+                // Reload storms after deletion
+                await loadStorms();
+              } else {
+                Alert.alert('Error', 'Storm document not found');
+              }
             } catch (error) {
+              console.error('Error deleting storm:', error);
               Alert.alert('Error', 'Failed to delete storm documentation');
             }
           },
@@ -249,14 +148,22 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
   const handleShareStorm = (storm: StormDocument) => {
     Alert.alert(
       'Share Storm',
-      'Sharing functionality would be implemented here. The storm data could be exported as JSON or shared as a report.',
+      'Choose how you want to share this storm data.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Export as JSON',
+          text: 'View JSON',
           onPress: () => {
             const stormJson = JSON.stringify(storm, null, 2);
-            Alert.alert('Storm Data', stormJson.substring(0, 500) + '...');
+            Alert.alert('Storm Data (JSON)', stormJson.substring(0, 500) + '...');
+          },
+        },
+        {
+          text: 'Copy to Clipboard',
+          onPress: () => {
+            const stormJson = JSON.stringify(storm, null, 2);
+            // In real implementation: Clipboard.setString(stormJson);
+            Alert.alert('Copied', 'Storm data copied to clipboard (simulated)');
           },
         },
       ],
@@ -274,10 +181,11 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              // In real implementation: await clearAllStormDocuments();
+              await clearAllStormDocuments();
               setStorms([]);
               setFilteredStorms([]);
             } catch (error) {
+              console.error('Error clearing all storms:', error);
               Alert.alert('Error', 'Failed to clear storms');
             }
           },
@@ -287,12 +195,13 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleViewStormDetails = (storm: StormDocument) => {
+    const typeConfig = STORM_TYPES.find(t => t.value === storm.stormType);
     Alert.alert(
       'Storm Details',
-      `Storm Type: ${STORM_TYPES.find(t => t.value === storm.stormType)?.label}\n` +
-      `Location: ${storm.location.address}\n` +
-      `Date: ${formatDate(storm.dateTime)}\n` +
-      `Conditions: ${storm.weatherConditions}\n\n` +
+      `Storm Type: ${typeConfig?.label || storm.stormType}\n` +
+      `Location: ${storm.location}\n` +
+      `Date: ${formatDate(storm.createdAt)}\n` +
+      `Conditions: ${storm.weatherCondition}\n\n` +
       `${storm.notes.substring(0, 200)}...`,
       [
         { text: 'Close', style: 'cancel' },
@@ -307,21 +216,28 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  const getStatistics = () => {
-    const stats = {
-      total: storms.length,
-      byType: {} as Record<StormType, number>,
-      byLocation: new Set(storms.map(s => s.location.address || 'Unknown')).size,
-    };
+  const [storageStats, setStorageStats] = React.useState({
+    totalDocuments: 0,
+    byStormType: {} as Record<StormType, number>,
+    byDate: {
+      today: 0,
+      thisWeek: 0,
+      thisMonth: 0,
+    },
+  });
 
-    storms.forEach((storm) => {
-      stats.byType[storm.stormType] = (stats.byType[storm.stormType] || 0) + 1;
-    });
-
-    return stats;
+  const loadStorageStats = async () => {
+    try {
+      const stats = await getStorageStats();
+      setStorageStats(stats);
+    } catch (error) {
+      console.error('Error loading storage stats:', error);
+    }
   };
 
-  const stats = getStatistics();
+  React.useEffect(() => {
+    loadStorageStats();
+  }, [storms]); // Reload stats when storms change
 
   if (loading) {
     return (
@@ -383,29 +299,27 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.statsTitle}>Storm Statistics</Text>
               <View style={styles.statsGrid}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>{stats.total}</Text>
+                  <Text style={styles.statNumber}>{storageStats.totalDocuments}</Text>
                   <Text style={styles.statLabel}>Total Storms</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>{stats.byLocation}</Text>
-                  <Text style={styles.statLabel}>Locations</Text>
+                  <Text style={styles.statNumber}>{storageStats.byDate.today}</Text>
+                  <Text style={styles.statLabel}>Today</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>
-                    {Object.keys(stats.byType).length}
-                  </Text>
-                  <Text style={styles.statLabel}>Storm Types</Text>
+                  <Text style={styles.statNumber}>{storageStats.byDate.thisWeek}</Text>
+                  <Text style={styles.statLabel}>This Week</Text>
                 </View>
               </View>
               
               {/* Storm type distribution */}
-              {Object.keys(stats.byType).length > 0 && (
+              {Object.keys(storageStats.byStormType).length > 0 && (
                 <View style={styles.typeDistribution}>
                   <Text style={styles.distributionTitle}>By Storm Type:</Text>
                   <View style={styles.distributionBars}>
-                    {Object.entries(stats.byType).map(([type, count]) => {
+                    {Object.entries(storageStats.byStormType).map(([type, count]) => {
                       const typeConfig = STORM_TYPES.find(t => t.value === type);
-                      const percentage = (count / stats.total) * 100;
+                      const percentage = (count / storageStats.totalDocuments) * 100;
                       return (
                         <View key={type} style={styles.distributionItem}>
                           <View style={styles.distributionBarContainer}>
@@ -483,11 +397,24 @@ const StormGalleryScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.exportButton]}
-                onPress={() => {
-                  Alert.alert(
-                    'Export Data',
-                    'Export functionality would save all storm data to a JSON file.',
-                  );
+                onPress={async () => {
+                  try {
+                    Alert.alert(
+                      'Export Data',
+                      'Exporting all storm data to JSON format...',
+                    );
+                    
+                    // In real implementation, this would save to a file
+                    // For now, just show a success message
+                    Alert.alert(
+                      'Export Complete',
+                      'All storm data has been exported successfully (simulated).\n\nIn a real implementation, this would save a JSON file to your device.',
+                      [{ text: 'OK' }]
+                    );
+                  } catch (error) {
+                    console.error('Error exporting data:', error);
+                    Alert.alert('Error', 'Failed to export data');
+                  }
                 }}>
                 <Icon name="export" size={20} color={COLORS.primary} />
                 <Text style={styles.exportButtonText}>Export All Data</Text>
