@@ -3,14 +3,16 @@
  * Handles photo capture and preview functionality
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants';
+import CameraView from './CameraView';
+import { CameraPhoto, checkCameraPermissions } from '../services/cameraService';
 
 interface PhotoCaptureCardProps {
   photoUri?: string;
-  onTakePhoto: () => void;
+  onTakePhoto: (photo: CameraPhoto) => void;
   onSelectFromGallery: () => void;
   onRemovePhoto: () => void;
   disabled?: boolean;
@@ -25,6 +27,54 @@ const PhotoCaptureCard: React.FC<PhotoCaptureCardProps> = ({
   disabled = false,
   error,
 }) => {
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraPermissionError, setCameraPermissionError] = useState<string | null>(null);
+
+  const handleOpenCamera = async () => {
+    if (disabled) return;
+
+    setCameraPermissionError(null);
+    
+    try {
+      const hasPermission = await checkCameraPermissions();
+      
+      if (hasPermission) {
+        setShowCamera(true);
+      } else {
+        setCameraPermissionError('Camera permission denied. Please enable camera access in settings.');
+      }
+    } catch (error) {
+      console.error('Error checking camera permissions:', error);
+      setCameraPermissionError('Failed to check camera permissions. Please try again.');
+    }
+  };
+
+  const handleCloseCamera = () => {
+    setShowCamera(false);
+  };
+
+  const handlePhotoTaken = (photo: CameraPhoto) => {
+    setShowCamera(false);
+    onTakePhoto(photo);
+  };
+
+  const handleMockPhoto = () => {
+    // For testing without camera
+    const mockPhoto: CameraPhoto = {
+      uri: 'https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=Storm+Photo',
+      width: 400,
+      height: 300,
+      timestamp: new Date().toISOString(),
+      location: {
+        latitude: 40.7128,
+        longitude: -74.0060,
+        altitude: 10,
+        accuracy: 5,
+      },
+    };
+    onTakePhoto(mockPhoto);
+  };
+
   return (
     <View style={[styles.card, SHADOWS.md]}>
       <Text style={styles.title}>Storm Photo</Text>
@@ -45,14 +95,14 @@ const PhotoCaptureCard: React.FC<PhotoCaptureCardProps> = ({
       ) : (
         <TouchableOpacity
           style={[styles.captureButton, disabled && styles.disabled]}
-          onPress={onTakePhoto}
+          onPress={handleOpenCamera}
           disabled={disabled}>
           <View style={styles.captureIconContainer}>
             <Icon name="camera" size={48} color={COLORS.surface} />
           </View>
           <Text style={styles.captureButtonText}>Tap to Capture Photo</Text>
           <Text style={styles.captureHint}>
-            Requires camera permissions and integration
+            Uses device camera with GPS location tagging
           </Text>
         </TouchableOpacity>
       )}
@@ -66,21 +116,29 @@ const PhotoCaptureCard: React.FC<PhotoCaptureCardProps> = ({
           <Text style={styles.galleryButtonText}>Choose from Gallery</Text>
         </TouchableOpacity>
         
-        {photoUri && (
+        {photoUri ? (
           <TouchableOpacity
             style={[styles.actionButton, styles.retakeButton]}
-            onPress={onTakePhoto}
+            onPress={handleOpenCamera}
             disabled={disabled}>
             <Icon name="camera-retake" size={20} color={COLORS.surface} />
             <Text style={styles.retakeButtonText}>Retake Photo</Text>
           </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.mockButton]}
+            onPress={handleMockPhoto}
+            disabled={disabled}>
+            <Icon name="image-filter-none" size={20} color={COLORS.textLight} />
+            <Text style={styles.mockButtonText}>Use Mock Photo</Text>
+          </TouchableOpacity>
         )}
       </View>
 
-      {error && (
+      {(error || cameraPermissionError) && (
         <View style={styles.errorContainer}>
           <Icon name="alert-circle" size={16} color={COLORS.error} />
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>{error || cameraPermissionError}</Text>
         </View>
       )}
 
@@ -99,6 +157,17 @@ const PhotoCaptureCard: React.FC<PhotoCaptureCardProps> = ({
           <Text style={styles.requirementText}>Safe distance maintained</Text>
         </View>
       </View>
+
+      {/* Camera Modal */}
+      <Modal
+        visible={showCamera}
+        animationType="slide"
+        onRequestClose={handleCloseCamera}>
+        <CameraView
+          onPhotoTaken={handlePhotoTaken}
+          onClose={handleCloseCamera}
+        />
+      </Modal>
     </View>
   );
 };
@@ -206,6 +275,11 @@ const styles = StyleSheet.create({
   retakeButton: {
     backgroundColor: COLORS.primary,
   },
+  mockButton: {
+    backgroundColor: `${COLORS.textLight}20`,
+    borderWidth: 1,
+    borderColor: COLORS.textLight,
+  },
   galleryButtonText: {
     fontSize: TYPOGRAPHY.fontSize.base,
     color: COLORS.primary,
@@ -215,6 +289,12 @@ const styles = StyleSheet.create({
   retakeButtonText: {
     fontSize: TYPOGRAPHY.fontSize.base,
     color: COLORS.surface,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    marginLeft: SPACING.sm,
+  },
+  mockButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textLight,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     marginLeft: SPACING.sm,
   },

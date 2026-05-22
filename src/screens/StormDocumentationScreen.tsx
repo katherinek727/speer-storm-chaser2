@@ -31,6 +31,7 @@ import {
 import PhotoCaptureCard from '../components/PhotoCaptureCard';
 import StormTypeSelector from '../components/StormTypeSelector';
 import { StormType } from '../types';
+import { CameraPhoto, formatLocation } from '../services/cameraService';
 
 type StormDocumentationScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -46,36 +47,42 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
   const [weatherCondition, setWeatherCondition] = React.useState<string>('Clear');
   const [notes, setNotes] = React.useState<string>('');
   const [location, setLocation] = React.useState<string>('Current Location');
-  const [photoUri, setPhotoUri] = React.useState<string | undefined>();
+  const [photo, setPhoto] = React.useState<CameraPhoto | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  const handleTakePhoto = () => {
-    Alert.alert(
-      'Camera Integration',
-      'Camera functionality would be implemented here using react-native-camera or react-native-image-picker.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Use Mock Photo',
-          onPress: () => {
-            setPhotoUri('https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=Storm+Photo');
-          },
-        },
-      ],
-    );
+  const handleTakePhoto = (capturedPhoto: CameraPhoto) => {
+    setPhoto(capturedPhoto);
+    
+    // Update location with GPS coordinates if available
+    if (capturedPhoto.location) {
+      const formattedLocation = formatLocation(capturedPhoto.location);
+      setLocation(`${formattedLocation} (GPS)`);
+    }
   };
 
   const handleSelectFromGallery = () => {
     Alert.alert(
       'Gallery Integration',
-      'Photo gallery selection would be implemented here.',
+      'Photo gallery selection would be implemented using react-native-image-picker.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Use Mock Photo',
           onPress: () => {
-            setPhotoUri('https://via.placeholder.com/400x300/50E3C2/FFFFFF?text=Storm+Gallery');
+            const mockPhoto: CameraPhoto = {
+              uri: 'https://via.placeholder.com/400x300/50E3C2/FFFFFF?text=Storm+Gallery',
+              width: 400,
+              height: 300,
+              timestamp: new Date().toISOString(),
+              location: {
+                latitude: 40.7128,
+                longitude: -74.0060,
+                altitude: 10,
+                accuracy: 5,
+              },
+            };
+            handleTakePhoto(mockPhoto);
           },
         },
       ],
@@ -83,7 +90,7 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleRemovePhoto = () => {
-    setPhotoUri(undefined);
+    setPhoto(null);
   };
 
   const handleUseCurrentLocation = () => {
@@ -104,6 +111,10 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+
+    if (!photo) {
+      newErrors.photo = 'Please capture or select a photo';
+    }
 
     if (!weatherCondition.trim()) {
       newErrors.weatherCondition = 'Please select a weather condition';
@@ -150,7 +161,7 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
               setWeatherCondition('Clear');
               setNotes('');
               setLocation('Current Location');
-              setPhotoUri(undefined);
+              setPhoto(null);
               setErrors({});
             },
           },
@@ -160,7 +171,7 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleCancel = () => {
-    if (notes.trim() || photoUri) {
+    if (notes.trim() || photo) {
       Alert.alert(
         'Discard Changes?',
         'You have unsaved changes. Are you sure you want to discard them?',
@@ -190,7 +201,7 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Photo Capture */}
           <PhotoCaptureCard
-            photoUri={photoUri}
+            photoUri={photo?.uri}
             onTakePhoto={handleTakePhoto}
             onSelectFromGallery={handleSelectFromGallery}
             onRemovePhoto={handleRemovePhoto}
@@ -351,9 +362,9 @@ const StormDocumentationScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.integrationTitle}>Integration Status</Text>
             <View style={styles.integrationItems}>
               <View style={styles.integrationItem}>
-                <Icon name="camera" size={16} color={photoUri ? COLORS.success : COLORS.textLight} />
+                <Icon name="camera" size={16} color={photo ? COLORS.success : COLORS.textLight} />
                 <Text style={styles.integrationText}>
-                  Camera: {photoUri ? 'Ready' : 'Not configured'}
+                  Camera: {photo ? 'Ready with GPS' : 'Ready for use'}
                 </Text>
               </View>
               <View style={styles.integrationItem}>
