@@ -61,12 +61,12 @@ android {
 
 dependencies {
     // React Native dependencies
-    implementation("com.facebook.react:react-android:0.85.3")
+    implementation("com.facebook.react:react-android:0.84.0")
     
     // Hermes or JSC
     def isHermesEnabled = hermesEnabled.toBoolean()
     if (isHermesEnabled) {
-        implementation("com.facebook.react:hermes-android:0.85.3")
+        implementation("com.facebook.react:hermes-android:0.84.0")
     } else {
         implementation jscFlavor
     }
@@ -86,7 +86,7 @@ configurations.all {
     resolutionStrategy {
         eachDependency { details ->
             if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
-                details.useTarget 'com.facebook.react:react-android:0.85.3'
+                details.useTarget 'com.facebook.react:react-android:0.84.0'
             }
         }
     }
