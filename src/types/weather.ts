@@ -25,6 +25,8 @@ export interface WeatherLocation {
   address?: string;
   city?: string;
   country?: string;
+  admin1?: string; // State/region
+  timezone?: string;
 }
 
 export interface WeatherUnits {
