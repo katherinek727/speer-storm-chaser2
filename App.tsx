@@ -9,47 +9,49 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { COLORS, TYPOGRAPHY } from './src/constants';
 
-// Import screens (to be created)
+// Import screens
 import HomeScreen from './src/screens/HomeScreen';
 import WeatherScreen from './src/screens/WeatherScreen';
 import StormDocumentationScreen from './src/screens/StormDocumentationScreen';
 import StormGalleryScreen from './src/screens/StormGalleryScreen';
 
-export type RootStackParamList = {
-  Home: undefined;
-  Weather: undefined;
-  StormDocumentation: undefined;
-  StormGallery: undefined;
-};
+// Import navigation types
+import { RootStackParamList } from './src/types/navigation';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const screenOptions = {
+    headerStyle: {
+      backgroundColor: COLORS.primary,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    headerTintColor: COLORS.surface,
+    headerTitleStyle: {
+      fontSize: TYPOGRAPHY.fontSize.lg,
+      fontWeight: TYPOGRAPHY.fontWeight.bold as 'bold',
+    },
+    headerTitleAlign: 'center' as 'center',
+    cardStyle: {
+      backgroundColor: COLORS.background,
+    },
+    headerBackTitleVisible: false,
+  };
+
   return (
     <SafeAreaProvider>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
+        backgroundColor={COLORS.primary}
+        translucent={false}
       />
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Home"
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: '#4A90E2',
-            },
-            headerTintColor: '#FFFFFF',
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            },
-            cardStyle: {
-              backgroundColor: '#F5F7FA',
-            },
-          }}>
+        <Stack.Navigator initialRouteName="Home" screenOptions={screenOptions}>
           <Stack.Screen
             name="Home"
             component={HomeScreen}

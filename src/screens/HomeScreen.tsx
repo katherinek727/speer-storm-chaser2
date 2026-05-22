@@ -12,7 +12,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../App';
+import { RootStackParamList } from '../../src/types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants';
 
@@ -30,7 +30,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       description: 'View current weather conditions and forecasts',
       icon: 'weather-partly-cloudy',
       color: COLORS.primary,
-      route: 'Weather' as keyof RootStackParamList,
+      route: 'Weather' as const,
     },
     {
       id: 'document',
@@ -38,7 +38,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       description: 'Capture and document storm events with photos',
       icon: 'camera',
       color: COLORS.secondary,
-      route: 'StormDocumentation' as keyof RootStackParamList,
+      route: 'StormDocumentation' as const,
     },
     {
       id: 'gallery',
@@ -46,7 +46,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       description: 'Browse your documented storm events',
       icon: 'image-multiple',
       color: COLORS.accent,
-      route: 'StormGallery' as keyof RootStackParamList,
+      route: 'StormGallery' as const,
     },
     {
       id: 'map',
@@ -54,7 +54,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       description: 'View storm locations on a map (Coming Soon)',
       icon: 'map',
       color: '#9C27B0',
-      route: 'Home' as keyof RootStackParamList,
+      route: 'Home' as const,
       disabled: true,
     },
   ];
@@ -116,7 +116,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 SHADOWS.sm,
                 item.disabled && styles.menuItemDisabled,
               ]}
-              onPress={() => !item.disabled && navigation.navigate(item.route)}
+              onPress={() => !item.disabled && navigation.navigate(item.route as any)}
               disabled={item.disabled}>
               <View
                 style={[styles.menuIconContainer, { backgroundColor: item.color }]}>

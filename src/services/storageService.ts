@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StormDocument, ApiResponse } from '../types';
+import { StormDocument, ApiResponse, Timestamped } from '../types';
 import { generateId } from '../utils/helpers';
 
 const STORAGE_KEYS = {

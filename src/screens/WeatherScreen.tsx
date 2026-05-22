@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../App';
+import { RootStackParamList } from '../../src/types/navigation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants';
 

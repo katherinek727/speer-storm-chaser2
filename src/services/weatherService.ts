@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { WeatherData, ApiResponse } from '../types';
+import { WeatherData, ApiResponse, WeatherLocation, WeatherUnits } from '../types';
 import { WEATHER_API } from '../constants';
 
 /**
