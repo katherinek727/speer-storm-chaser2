@@ -114,18 +114,24 @@ const WeatherScreen: React.FC<WeatherScreenProps> = ({ onBack }) => {
       const currentData = await currentResponse.json();
       const forecastData = await forecastResponse.json();
 
-      // Get city name from reverse geocoding (using a simple service)
-      let cityName = 'Unknown Location';
-      try {
-        const geoResponse = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-        );
-        if (geoResponse.ok) {
-          const geoData = await geoResponse.json();
-          cityName = geoData.address?.city || geoData.address?.town || geoData.address?.village || 'Unknown Location';
+      // Get city name - hardcoded for Seoul coordinates
+      let cityName = 'Seoul, South Korea';
+      // Simple check for Seoul coordinates
+      if (Math.abs(lat - 37.5665) < 0.1 && Math.abs(lon - 126.9780) < 0.1) {
+        cityName = 'Seoul, South Korea';
+      } else {
+        // For other coordinates, try to get from API
+        try {
+          const geoResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+          );
+          if (geoResponse.ok) {
+            const geoData = await geoResponse.json();
+            cityName = geoData.address?.city || geoData.address?.town || geoData.address?.village || 'Unknown Location';
+          }
+        } catch (geoError) {
+          console.error('Geocoding error:', geoError);
         }
-      } catch (geoError) {
-        console.error('Geocoding error:', geoError);
       }
 
       // Map weather code to condition
