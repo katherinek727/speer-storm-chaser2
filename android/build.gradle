@@ -58,22 +58,28 @@ allprojects {
         // JitPack
         maven { url "https://jitpack.io" }
         
-        // React Native
+        // React Native - explicit path
         maven {
-            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            url("$rootDir/../node_modules/react-native/android")
+            url "$rootDir/../node_modules/react-native/android"
         }
         maven {
             // Android JSC is installed from npm
-            url("$rootDir/../node_modules/jsc-android/dist")
-        }
-        
-        // Facebook Maven repository for React Native
-        maven {
-            url("$rootDir/../node_modules/react-native/android")
+            url "$rootDir/../node_modules/jsc-android/dist"
         }
         
         // Central repositories
         mavenCentral()
+        
+        // Exclusive content for React Native
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url "$rootDir/../node_modules/react-native/android"
+                }
+            }
+            filter {
+                includeGroup "com.facebook.react"
+            }
+        }
     }
 }
