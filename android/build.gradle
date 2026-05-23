@@ -10,11 +10,17 @@ buildscript {
         kotlinVersion = "1.9.22"
     }
     repositories {
+        // Local Maven repository
+        maven { url "${System.properties['user.home']}/.m2/repository" }
+        
+        // Primary repositories
         google()
         maven { url "https://maven.google.com" }
-        maven { url "https://plugins.gradle.org/m2/" }
         maven { url "$rootDir/../node_modules/react-native/android" }
         maven { url "https://jitpack.io" }
+        
+        // Fallback to HTTP if HTTPS fails
+        maven { url "http://repo.maven.apache.org/maven2" }
         mavenCentral()
     }
     dependencies {
@@ -40,10 +46,13 @@ allprojects {
 
 allprojects {
     repositories {
+        // Local Maven repository
+        maven { url "${System.properties['user.home']}/.m2/repository" }
+        
+        // Primary repositories
         google()
         maven { url "https://maven.google.com" }
         maven { url "https://jitpack.io" }
-        maven { url "https://plugins.gradle.org/m2/" }
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
@@ -52,6 +61,9 @@ allprojects {
             // Android JSC is installed from npm
             url("$rootDir/../node_modules/jsc-android/dist")
         }
+        
+        // Fallback to HTTP if HTTPS fails
+        maven { url "http://repo.maven.apache.org/maven2" }
         mavenCentral()
     }
 }
