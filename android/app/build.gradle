@@ -34,6 +34,9 @@ android {
         
         // Configure react-native-camera variant
         missingDimensionStrategy 'react-native-camera', 'general'
+        
+        // Configure react-native-maps
+        missingDimensionStrategy 'react-native-maps', 'release'
     }
     signingConfigs {
         debug {
