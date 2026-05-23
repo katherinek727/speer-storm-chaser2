@@ -53,6 +53,14 @@ allprojects {
             force "com.facebook.react:react-android:0.72.10"
             force "com.facebook.react:hermes-android:0.72.10"
             
+            // Force AndroidX versions compatible with compileSdkVersion 33
+            force "androidx.core:core-ktx:1.9.0"
+            force "androidx.core:core:1.9.0"
+            force "androidx.appcompat:appcompat:1.6.1"
+            force "com.google.android.material:material:1.9.0"
+            force "androidx.vectordrawable:vectordrawable:1.1.0"
+            force "androidx.vectordrawable:vectordrawable-animated:1.1.0"
+            
             // Handle react-native:+ dependencies
             eachDependency { details ->
                 if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
