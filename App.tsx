@@ -13,6 +13,10 @@ import { COLORS, TYPOGRAPHY } from './src/constants';
 // Import gesture handler at the top
 import 'react-native-gesture-handler';
 
+// Disable native screens to avoid RNSScreen error
+import { enableScreens } from 'react-native-screens';
+enableScreens(false); // Disable native screens
+
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
 import WeatherScreen from './src/screens/WeatherScreen';

@@ -8,7 +8,7 @@ import com.facebook.react.shell.MainReactPackage
 import com.facebook.soloader.SoLoader
 import java.util.Arrays
 
-// Import gesture handler manually
+// Import packages manually
 import com.swmansion.gesturehandler.RNGestureHandlerPackage
 
 class MainApplication : Application(), ReactApplication {
