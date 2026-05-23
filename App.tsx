@@ -1,25 +1,20 @@
 /**
- * Storm Chaser App - Simplified Version
+ * Storm Chaser App - Home Screen Only
  * A mobile application for storm chasing hobbyist meteorologists
  * @format
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { 
   StatusBar, 
-  useColorScheme, 
   View, 
   Text, 
   StyleSheet, 
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert
 } from 'react-native';
-
-// Import Weather Screen
-import WeatherScreen from './src/screens/WeatherScreen';
 
 // Simple colors
 const COLORS = {
@@ -37,197 +32,86 @@ const COLORS = {
   info: '#2196F3',
 };
 
-// Define screen types
-type ScreenType = 'home' | 'weather';
-
-// Home Screen Component
-const HomeScreen = ({ onNavigate }: { onNavigate: (screen: ScreenType) => void }) => {
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Storm Chaser</Text>
-        <Text style={styles.headerSubtitle}>Professional Storm Tracking</Text>
-      </View>
-      
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>12</Text>
-          <Text style={styles.statLabel}>Active Storms</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>3</Text>
-          <Text style={styles.statLabel}>Warnings</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>85%</Text>
-          <Text style={styles.statLabel}>Accuracy</Text>
-        </View>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsGrid}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => onNavigate('weather')}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: COLORS.primary }]} />
-            <Text style={styles.actionText}>Weather</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => Alert.alert('Feature Coming Soon', 'Storm documentation feature would open here')}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: COLORS.secondary }]} />
-            <Text style={styles.actionText}>Document</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => Alert.alert('Feature Coming Soon', 'Storm gallery would open here')}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: COLORS.accent }]} />
-            <Text style={styles.actionText}>Gallery</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => Alert.alert('Feature Coming Soon', 'Storm map would open here')}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: COLORS.info }]} />
-            <Text style={styles.actionText}>Map</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        <View style={styles.activityCard}>
-          <Text style={styles.activityTitle}>Thunderstorm detected</Text>
-          <Text style={styles.activityTime}>2 hours ago • 40 miles away</Text>
-        </View>
-        <View style={styles.activityCard}>
-          <Text style={styles.activityTitle}>Tornado warning issued</Text>
-          <Text style={styles.activityTime}>4 hours ago • 25 miles away</Text>
-        </View>
-        <View style={styles.activityCard}>
-          <Text style={styles.activityTitle}>Heavy rainfall alert</Text>
-          <Text style={styles.activityTime}>6 hours ago • 15 miles away</Text>
-        </View>
-      </View>
-    </ScrollView>
-  );
-};
-
-// Custom splash screen component
-const CustomSplashScreen = () => {
-  return (
-    <View style={styles.splashContainer}>
-      <View style={styles.splashContent}>
-        <View style={styles.splashIcon}>
-          <View style={styles.splashIconOuter} />
-          <View style={styles.splashIconInner} />
-        </View>
-        <Text style={styles.splashTitle}>Storm Chaser</Text>
-        <Text style={styles.splashSubtitle}>Professional Storm Tracking</Text>
-      </View>
-    </View>
-  );
-};
-
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  const [isSplashVisible, setIsSplashVisible] = useState(true);
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
-
-  useEffect(() => {
-    // Hide splash screen after app is loaded
-    const timer = setTimeout(() => {
-      setIsSplashVisible(false);
-    }, 2000); // Show splash for 2 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleNavigate = (screen: ScreenType) => {
-    setCurrentScreen(screen);
-  };
-
-  const handleBack = () => {
-    setCurrentScreen('home');
-  };
-
-  if (isSplashVisible) {
-    return <CustomSplashScreen />;
-  }
-
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 'weather':
-        return <WeatherScreen onBack={handleBack} />;
-      case 'home':
-      default:
-        return <HomeScreen onNavigate={handleNavigate} />;
-    }
-  };
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={COLORS.primary}
-        translucent={false}
-      />
-      {renderScreen()}
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.primary} />
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Storm Chaser</Text>
+          <Text style={styles.headerSubtitle}>Professional Storm Tracking</Text>
+        </View>
+        
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statLabel}>Active Storms</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>3</Text>
+            <Text style={styles.statLabel}>Warnings</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>85%</Text>
+            <Text style={styles.statLabel}>Accuracy</Text>
+          </View>
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsGrid}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => Alert.alert('Weather', 'Weather feature would open here')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.primary }]} />
+              <Text style={styles.actionText}>Weather</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => Alert.alert('Document', 'Storm documentation feature would open here')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.secondary }]} />
+              <Text style={styles.actionText}>Document</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => Alert.alert('Gallery', 'Storm gallery would open here')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.accent }]} />
+              <Text style={styles.actionText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => Alert.alert('Map', 'Storm map would open here')}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.info }]} />
+              <Text style={styles.actionText}>Map</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <View style={styles.activityCard}>
+            <Text style={styles.activityTitle}>Thunderstorm detected</Text>
+            <Text style={styles.activityTime}>2 hours ago • 40 miles away</Text>
+          </View>
+          <View style={styles.activityCard}>
+            <Text style={styles.activityTitle}>Tornado warning issued</Text>
+            <Text style={styles.activityTime}>4 hours ago • 25 miles away</Text>
+          </View>
+          <View style={styles.activityCard}>
+            <Text style={styles.activityTitle}>Heavy rainfall alert</Text>
+            <Text style={styles.activityTime}>6 hours ago • 15 miles away</Text>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  // Splash screen styles
-  splashContainer: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  splashContent: {
-    alignItems: 'center',
-  },
-  splashIcon: {
-    position: 'relative',
-    width: 200,
-    height: 200,
-    marginBottom: 40,
-  },
-  splashIconOuter: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'white',
-    opacity: 0.9,
-  },
-  splashIconInner: {
-    position: 'absolute',
-    top: 40,
-    left: 40,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.secondary,
-  },
-  splashTitle: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  splashSubtitle: {
-    fontSize: 18,
-    color: 'white',
-    opacity: 0.8,
-  },
-  
-  // Home screen styles
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
