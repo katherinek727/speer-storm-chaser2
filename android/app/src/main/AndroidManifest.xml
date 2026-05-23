@@ -26,6 +26,11 @@
         android:name="com.google.android.geo.API_KEY"
         android:value="@string/google_maps_key" />
       
+      <!-- 16KB page alignment for Android 14+ compatibility -->
+      <meta-data
+        android:name="android.content.pm.PAGE_ALIGNMENT_LIMIT"
+        android:value="16384" />
+      
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
