@@ -73,13 +73,13 @@ android {
 }
 
 dependencies {
-    // React Native dependencies - from local node_modules with version
-    implementation("com.facebook.react:react-android:0.72.10")
+    // React Native dependencies - version handled by resolutionStrategy
+    implementation("com.facebook.react:react-android")
     
     // Hermes or JSC
     def isHermesEnabled = hermesEnabled.toBoolean()
     if (isHermesEnabled) {
-        implementation("com.facebook.react:hermes-android:0.72.10")
+        implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }
@@ -104,24 +104,3 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0"
 }
 
-// Dependency resolution strategy
-configurations.all {
-    resolutionStrategy {
-        // Force AndroidX dependencies
-        force "androidx.appcompat:appcompat:1.6.1"
-        force "androidx.core:core-ktx:1.12.0"
-        force "androidx.vectordrawable:vectordrawable:1.1.0"
-        force "androidx.vectordrawable:vectordrawable-animated:1.1.0"
-        force "com.google.android.material:material:1.9.0"
-        
-
-        
-        // Handle react-native:+ dependencies
-        eachDependency { details ->
-            if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
-                details.useTarget "com.facebook.react:react-android:0.72.10"
-                details.because "react-native artifact is deprecated, use react-android instead"
-            }
-        }
-    }
-}
