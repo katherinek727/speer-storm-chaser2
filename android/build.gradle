@@ -48,17 +48,14 @@ allprojects {
 
 allprojects {
     repositories {
-        // Primary repositories - Google first
+        // Primary repositories
         google()
         maven { url "https://maven.google.com" }
-        
-        // Local Maven repository
-        maven { url "${System.properties['user.home']}/.m2/repository" }
         
         // JitPack
         maven { url "https://jitpack.io" }
         
-        // React Native - explicit path
+        // React Native from local node_modules (MUST be before mavenCentral)
         maven {
             url "$rootDir/../node_modules/react-native/android"
         }
@@ -69,17 +66,5 @@ allprojects {
         
         // Central repositories
         mavenCentral()
-        
-        // Exclusive content for React Native
-        exclusiveContent {
-            forRepository {
-                maven {
-                    url "$rootDir/../node_modules/react-native/android"
-                }
-            }
-            filter {
-                includeGroup "com.facebook.react"
-            }
-        }
     }
 }

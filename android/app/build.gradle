@@ -73,9 +73,16 @@ android {
 }
 
 dependencies {
-    // React Native dependencies - from local node_modules
-    implementation("com.facebook.react:react-android")
-    implementation("com.facebook.react:hermes-android")
+    // React Native dependencies - from local node_modules with version
+    implementation("com.facebook.react:react-android:0.72.10")
+    
+    // Hermes or JSC
+    def isHermesEnabled = hermesEnabled.toBoolean()
+    if (isHermesEnabled) {
+        implementation("com.facebook.react:hermes-android:0.72.10")
+    } else {
+        implementation jscFlavor
+    }
     
     // React Native libraries
     implementation project(':react-native-maps')
@@ -98,25 +105,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0"
 }
 
-// Force all React Native dependencies to use specific version
+// Dependency resolution strategy
 configurations.all {
     resolutionStrategy {
-        // Force specific versions for React Native
-        force "com.facebook.react:react-android:0.72.10"
-        force "com.facebook.react:hermes-android:0.72.10"
-        
-        // Replace any react-native dependency with react-android (including transitive)
-        eachDependency { details ->
-            if (details.requested.group == 'com.facebook.react') {
-                if (details.requested.name == 'react-native' || details.requested.name == 'react-android') {
-                    details.useVersion "0.72.10"
-                    details.useTarget "com.facebook.react:react-android:0.72.10"
-                    details.because "Force React Native version 0.72.10 for consistency"
-                }
-            }
-        }
-        
-        // AndroidX dependencies
+        // Force AndroidX dependencies
         force "androidx.appcompat:appcompat:1.6.1"
         force "androidx.core:core-ktx:1.12.0"
         force "androidx.vectordrawable:vectordrawable:1.1.0"
@@ -134,5 +126,13 @@ configurations.all {
         force "com.android.support:support-core-ui:28.0.0"
         force "com.android.support:support-fragment:28.0.0"
         force "com.android.support:support-compat:28.0.0"
+        
+        // Handle react-native:+ dependencies
+        eachDependency { details ->
+            if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
+                details.useTarget "com.facebook.react:react-android:0.72.10"
+                details.because "react-native artifact is deprecated, use react-android instead"
+            }
+        }
     }
 }
