@@ -4,12 +4,11 @@
  * @format
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar, useColorScheme, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import SplashScreen from 'react-native-splash-screen';
 import { COLORS, TYPOGRAPHY } from './src/constants';
 
 // Import screens
@@ -42,11 +41,12 @@ const CustomSplashScreen = () => {
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
 
   useEffect(() => {
     // Hide splash screen after app is loaded
     const timer = setTimeout(() => {
-      SplashScreen.hide();
+      setIsSplashVisible(false);
     }, 2000); // Show splash for 2 seconds
 
     return () => clearTimeout(timer);
@@ -69,6 +69,10 @@ function App(): React.JSX.Element {
     },
     headerBackTitleVisible: false,
   };
+
+  if (isSplashVisible) {
+    return <CustomSplashScreen />;
+  }
 
   return (
     <SafeAreaProvider>

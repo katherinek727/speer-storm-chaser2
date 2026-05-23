@@ -91,7 +91,6 @@ dependencies {
     implementation project(':react-native-permissions')
     implementation project(':@react-native-async-storage_async-storage')
     implementation project(':react-native-camera')
-    implementation project(':react-native-splash-screen')
     implementation project(':react-native-gesture-handler')
     
     // Add these for compatibility
@@ -115,17 +114,7 @@ configurations.all {
         force "androidx.vectordrawable:vectordrawable-animated:1.1.0"
         force "com.google.android.material:material:1.9.0"
         
-        // Legacy support libraries replacement (for react-native-splash-screen)
-        force "com.android.support:appcompat-v7:28.0.0"
-        force "com.android.support:support-v4:28.0.0"
-        force "com.android.support:support-annotations:28.0.0"
-        force "com.android.support:support-vector-drawable:28.0.0"
-        force "com.android.support:animated-vector-drawable:28.0.0"
-        force "com.android.support:support-media-compat:28.0.0"
-        force "com.android.support:support-core-utils:28.0.0"
-        force "com.android.support:support-core-ui:28.0.0"
-        force "com.android.support:support-fragment:28.0.0"
-        force "com.android.support:support-compat:28.0.0"
+
         
         // Handle react-native:+ dependencies
         eachDependency { details ->
