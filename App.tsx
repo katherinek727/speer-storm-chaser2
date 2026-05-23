@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar, useColorScheme, View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { COLORS, TYPOGRAPHY } from './src/constants';
 
@@ -23,7 +23,7 @@ import MapScreen from './src/screens/MapScreen';
 // Import navigation types
 import { RootStackParamList } from './src/types/navigation';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
 // Custom splash screen component
 const CustomSplashScreen = () => {
