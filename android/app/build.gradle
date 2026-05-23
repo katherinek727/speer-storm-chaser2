@@ -73,13 +73,13 @@ android {
 }
 
 dependencies {
-    // React Native dependencies - version handled by resolutionStrategy
-    implementation("com.facebook.react:react-android")
+    // React Native dependencies with explicit versions
+    implementation("com.facebook.react:react-android:0.72.10")
     
     // Hermes or JSC
     def isHermesEnabled = hermesEnabled.toBoolean()
     if (isHermesEnabled) {
-        implementation("com.facebook.react:hermes-android")
+        implementation("com.facebook.react:hermes-android:0.72.10")
     } else {
         implementation jscFlavor
     }
