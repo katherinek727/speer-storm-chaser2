@@ -8,12 +8,16 @@ import com.facebook.react.shell.MainReactPackage
 import com.facebook.soloader.SoLoader
 import java.util.Arrays
 
+// Import gesture handler manually
+import com.swmansion.gesturehandler.RNGestureHandlerPackage
+
 class MainApplication : Application(), ReactApplication {
 
     private val mReactNativeHost = object : ReactNativeHost(this) {
         override fun getPackages(): List<ReactPackage> {
             return Arrays.asList<ReactPackage>(
-                MainReactPackage()
+                MainReactPackage(),
+                RNGestureHandlerPackage()
             )
         }
 

@@ -10,6 +10,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar, useColorScheme, View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { COLORS, TYPOGRAPHY } from './src/constants';
 
+// Import gesture handler at the top
+import 'react-native-gesture-handler';
+
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
 import WeatherScreen from './src/screens/WeatherScreen';
