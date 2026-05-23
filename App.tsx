@@ -17,6 +17,9 @@ import {
   Image
 } from 'react-native';
 
+// Import Weather Screen
+import WeatherScreen from './src/screens/WeatherScreen';
+
 // Simple colors
 const COLORS = {
   primary: '#4A90E2',
@@ -33,8 +36,11 @@ const COLORS = {
   info: '#2196F3',
 };
 
-// Simple screens
-const HomeScreen = () => {
+// Define screen types
+type ScreenType = 'home' | 'weather';
+
+// Home Screen Component
+const HomeScreen = ({ onNavigate }: { onNavigate: (screen: ScreenType) => void }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -60,19 +66,31 @@ const HomeScreen = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => onNavigate('weather')}
+          >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.primary }]} />
             <Text style={styles.actionText}>Weather</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => alert('Storm documentation feature would open here')}
+          >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.secondary }]} />
             <Text style={styles.actionText}>Document</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => alert('Storm gallery would open here')}
+          >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.accent }]} />
             <Text style={styles.actionText}>Gallery</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => alert('Storm map would open here')}
+          >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.info }]} />
             <Text style={styles.actionText}>Map</Text>
           </TouchableOpacity>
@@ -117,6 +135,7 @@ const CustomSplashScreen = () => {
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [isSplashVisible, setIsSplashVisible] = useState(true);
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
 
   useEffect(() => {
     // Hide splash screen after app is loaded
@@ -127,9 +146,27 @@ function App(): React.JSX.Element {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleNavigate = (screen: ScreenType) => {
+    setCurrentScreen(screen);
+  };
+
+  const handleBack = () => {
+    setCurrentScreen('home');
+  };
+
   if (isSplashVisible) {
     return <CustomSplashScreen />;
   }
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'weather':
+        return <WeatherScreen onBack={handleBack} />;
+      case 'home':
+      default:
+        return <HomeScreen onNavigate={handleNavigate} />;
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -138,7 +175,7 @@ function App(): React.JSX.Element {
         backgroundColor={COLORS.primary}
         translucent={false}
       />
-      <HomeScreen />
+      {renderScreen()}
     </SafeAreaView>
   );
 }
