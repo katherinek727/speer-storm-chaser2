@@ -7,8 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar, useColorScheme, View, Text, StyleSheet } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar, useColorScheme, View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { COLORS, TYPOGRAPHY } from './src/constants';
 
 // Import screens
@@ -75,7 +74,7 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.primary }}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={COLORS.primary}
@@ -110,7 +109,7 @@ function App(): React.JSX.Element {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaProvider>
+    </SafeAreaView>
   );
 }
 
