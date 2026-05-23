@@ -1,11 +1,14 @@
 /**
  * Storage Service
- * Handles local data persistence using AsyncStorage
+ * Handles local data persistence using MMKV
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKV } from 'react-native-mmkv';
 import { CameraPhoto } from './cameraService';
 import { StormType } from '../types';
+
+// Initialize MMKV storage
+const storage = new MMKV();
 
 export interface StormDocument {
   id: string;
@@ -87,10 +90,7 @@ export const saveStormDocument = async (
     const updatedDocuments = [...existingDocuments, newDocument];
     
     // Save to storage
-    await AsyncStorage.setItem(
-      STORAGE_KEYS.STORM_DOCUMENTS,
-      JSON.stringify(updatedDocuments)
-    );
+    storage.set(STORAGE_KEYS.STORM_DOCUMENTS, JSON.stringify(updatedDocuments));
 
     // Update storage stats
     await updateStorageStats();
