@@ -68,6 +68,11 @@ allprojects {
             url("$rootDir/../node_modules/jsc-android/dist")
         }
         
+        // Facebook Maven repository for React Native
+        maven {
+            url("$rootDir/../node_modules/react-native/android")
+        }
+        
         // Central repositories
         mavenCentral()
     }
