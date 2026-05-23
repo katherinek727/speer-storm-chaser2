@@ -16,7 +16,6 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import Geolocation from 'react-native-geolocation-service';
 
 // Simple colors matching the main app
 const COLORS = {
@@ -100,15 +99,22 @@ const WeatherScreen: React.FC<WeatherScreenProps> = ({ onBack }) => {
     return true; // iOS는 다른 방식으로 처리
   };
 
-  // Get current location
+  // Get current location using Web Geolocation API
   const getCurrentLocation = () => {
     return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
-      Geolocation.getCurrentPosition(
-        (position) => {
+      // TypeScript workaround for navigator.geolocation
+      const geo = (navigator as any).geolocation;
+      if (!geo) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+
+      geo.getCurrentPosition(
+        (position: any) => {
           const { latitude, longitude } = position.coords;
           resolve({ latitude, longitude });
         },
-        (error) => {
+        (error: any) => {
           console.error('Location error:', error);
           reject(error);
         },

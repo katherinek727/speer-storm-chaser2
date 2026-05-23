@@ -14,7 +14,8 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Image
+  Image,
+  Alert
 } from 'react-native';
 
 // Import Weather Screen
@@ -75,21 +76,21 @@ const HomeScreen = ({ onNavigate }: { onNavigate: (screen: ScreenType) => void }
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.actionButton}
-            onPress={() => alert('Storm documentation feature would open here')}
+            onPress={() => Alert.alert('Feature Coming Soon', 'Storm documentation feature would open here')}
           >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.secondary }]} />
             <Text style={styles.actionText}>Document</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.actionButton}
-            onPress={() => alert('Storm gallery would open here')}
+            onPress={() => Alert.alert('Feature Coming Soon', 'Storm gallery would open here')}
           >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.accent }]} />
             <Text style={styles.actionText}>Gallery</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.actionButton}
-            onPress={() => alert('Storm map would open here')}
+            onPress={() => Alert.alert('Feature Coming Soon', 'Storm map would open here')}
           >
             <View style={[styles.actionIcon, { backgroundColor: COLORS.info }]} />
             <Text style={styles.actionText}>Map</Text>

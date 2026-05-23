@@ -575,7 +575,11 @@ const styles = StyleSheet.create({
     height: screenHeight,
   },
   loadingContainer: {
-    ...StyleSheet.absoluteFill,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.background,
