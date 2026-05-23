@@ -6,16 +6,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar, useColorScheme, View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { COLORS, TYPOGRAPHY } from './src/constants';
 
 // Import gesture handler at the top
 import 'react-native-gesture-handler';
-
-// Disable native screens to avoid RNSScreen error
-import { enableScreens } from 'react-native-screens';
-enableScreens(false); // Disable native screens
 
 // Import screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -27,7 +23,7 @@ import MapScreen from './src/screens/MapScreen';
 // Import navigation types
 import { RootStackParamList } from './src/types/navigation';
 
-const Stack = createStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Custom splash screen component
 const CustomSplashScreen = () => {
