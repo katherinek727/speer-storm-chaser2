@@ -1,27 +1,37 @@
 package com.stormchaser
 
 import android.app.Application
-import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
-import com.facebook.react.ReactHost
-import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
-import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.facebook.react.ReactNativeHost
+import com.facebook.react.ReactPackage
+import com.facebook.react.shell.MainReactPackage
+import com.facebook.soloader.SoLoader
+import java.util.Arrays
 
 class MainApplication : Application(), ReactApplication {
 
-  override val reactHost: ReactHost by lazy {
-    getDefaultReactHost(
-      context = applicationContext,
-      packageList =
-        PackageList(this).packages.apply {
-          // Packages that cannot be autolinked yet can be added manually here, for example:
-          // add(MyReactNativePackage())
-        },
-    )
-  }
+    private val mReactNativeHost = object : ReactNativeHost(this) {
+        override fun getPackages(): List<ReactPackage> {
+            return Arrays.asList<ReactPackage>(
+                MainReactPackage()
+            )
+        }
 
-  override fun onCreate() {
-    super.onCreate()
-    loadReactNative(this)
-  }
+        override fun getJSMainModuleName(): String {
+            return "index"
+        }
+
+        override fun getUseDeveloperSupport(): Boolean {
+            return BuildConfig.DEBUG
+        }
+    }
+
+    override fun getReactNativeHost(): ReactNativeHost {
+        return mReactNativeHost
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        SoLoader.init(this, /* native exopackage */ false)
+    }
 }
