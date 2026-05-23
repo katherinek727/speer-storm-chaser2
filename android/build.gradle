@@ -7,23 +7,21 @@ buildscript {
         compileSdkVersion = 33
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
-        kotlinVersion = "1.9.22"
+        kotlinVersion = "1.8.0"
     }
     repositories {
+        // Primary repositories - Google first
+        google()
+        maven { url "https://maven.google.com" }
+        
         // Local Maven repository
         maven { url "${System.properties['user.home']}/.m2/repository" }
         
-        // Primary repositories
-        google()
-        maven { url "https://maven.google.com" }
+        // React Native
         maven { url "$rootDir/../node_modules/react-native/android" }
         maven { url "https://jitpack.io" }
         
-        // Maven Central with allowInsecureProtocol for development
-        maven {
-            url "http://repo.maven.apache.org/maven2"
-            allowInsecureProtocol = true
-        }
+        // Central repositories
         mavenCentral()
     }
     dependencies {
@@ -49,13 +47,17 @@ allprojects {
 
 allprojects {
     repositories {
+        // Primary repositories - Google first
+        google()
+        maven { url "https://maven.google.com" }
+        
         // Local Maven repository
         maven { url "${System.properties['user.home']}/.m2/repository" }
         
-        // Primary repositories
-        google()
-        maven { url "https://maven.google.com" }
+        // JitPack
         maven { url "https://jitpack.io" }
+        
+        // React Native
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
@@ -65,11 +67,7 @@ allprojects {
             url("$rootDir/../node_modules/jsc-android/dist")
         }
         
-        // Maven Central with allowInsecureProtocol for development
-        maven {
-            url "http://repo.maven.apache.org/maven2"
-            allowInsecureProtocol = true
-        }
+        // Central repositories
         mavenCentral()
     }
 }
