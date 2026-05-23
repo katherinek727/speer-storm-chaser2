@@ -46,32 +46,18 @@ allprojects {
 }
 
 // Apply global resolution strategy to all projects
-subprojects { subproject ->
-    afterEvaluate {
-        if ((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
-            configurations.all {
-                resolutionStrategy {
-                    // Handle react-native:+ dependencies in all modules
-                    eachDependency { details ->
-                        if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
-                            details.useTarget "com.facebook.react:react-android:0.72.10"
-                            details.because "react-native artifact is deprecated, use react-android instead"
-                        }
-                    }
-                    
-                    // Also handle react-android and hermes-android without version
-                    eachDependency { details ->
-                        if (details.requested.group == 'com.facebook.react') {
-                            if (details.requested.name == 'react-android' && details.requested.version == null) {
-                                details.useVersion "0.72.10"
-                                details.because "react-android requires explicit version"
-                            }
-                            if (details.requested.name == 'hermes-android' && details.requested.version == null) {
-                                details.useVersion "0.72.10"
-                                details.because "hermes-android requires explicit version"
-                            }
-                        }
-                    }
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            // Force specific React Native versions for all modules
+            force "com.facebook.react:react-android:0.72.10"
+            force "com.facebook.react:hermes-android:0.72.10"
+            
+            // Handle react-native:+ dependencies
+            eachDependency { details ->
+                if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
+                    details.useTarget "com.facebook.react:react-android:0.72.10"
+                    details.because "react-native artifact is deprecated, use react-android instead"
                 }
             }
         }
